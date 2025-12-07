@@ -21,8 +21,9 @@ services:
       fi
       cat > /etc/caddy/Caddyfile << EOF
       \$$DOMAIN_VAL {
-        # Caddy automatically handles ACME challenges, but we need to ensure
-        # the frontend is ready before proxying
+        # Caddy automatically handles ACME challenges in HTTP
+        # It will serve them directly without proxying to the backend
+        
         reverse_proxy frontend:3000 {
           health_uri /api/health
           health_interval 10s
