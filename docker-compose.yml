@@ -1,64 +1,9 @@
 services:
-  # Caddy - Reverse Proxy & SSL
-  caddy:
-    image: caddy:2-alpine
-    container_name: korli-caddy
-    ports:
-      - "80:80"
-      - "443:443"
-      - "443:443/udp"
-    volumes:
-      - caddy-data:/data
-      - caddy-config:/config
-    environment:
-      - DOMAIN=${DOMAIN:-localhost}
-    entrypoint: |
-      sh -c "
-      if [ -z \"$$DOMAIN\" ]; then
-        DOMAIN_VAL=\"localhost\"
-      else
-        DOMAIN_VAL=\"$$DOMAIN\"
-      fi
-      cat > /etc/caddy/Caddyfile << EOF
-      \$$DOMAIN_VAL {
-        # Caddy automatically handles ACME challenges in HTTP
-        # It will serve them directly without proxying to the backend
-        
-        reverse_proxy frontend:3000 {
-          health_uri /api/health
-          health_interval 10s
-          health_timeout 5s
-          health_status 200
-        }
-        
-        header {
-          -Server
-          Strict-Transport-Security \"max-age=31536000; includeSubDomains; preload\"
-          X-Content-Type-Options \"nosniff\"
-          X-Frame-Options \"SAMEORIGIN\"
-          X-XSS-Protection \"1; mode=block\"
-          Referrer-Policy \"strict-origin-when-cross-origin\"
-          Permissions-Policy \"camera=(), microphone=(), geolocation=()\"
-        }
-        
-        encode gzip
-      }
-      EOF
-      exec caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
-      "
-    depends_on:
-      - frontend
-    restart: unless-stopped
-    networks:
-      - korli-network
-
   # Frontend - Next.js Application
   frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    build: .
     container_name: korli-frontend
-    # Don't expose port 3000 publicly, only to Caddy
+    restart: always
     expose:
       - "3000"
     environment:
@@ -69,7 +14,6 @@ services:
       - NEXT_PUBLIC_BETTER_AUTH_URL=${NEXT_PUBLIC_BETTER_AUTH_URL:-https://${DOMAIN:-localhost}}
     depends_on:
       - database
-    restart: unless-stopped
     networks:
       - korli-network
 
@@ -86,7 +30,7 @@ services:
       - "3306:3306"
     volumes:
       - mysql-data:/var/lib/mysql
-    restart: unless-stopped
+    restart: always
     networks:
       - korli-network
     healthcheck:
@@ -97,10 +41,6 @@ services:
 
 volumes:
   mysql-data:
-    driver: local
-  caddy-data:
-    driver: local
-  caddy-config:
     driver: local
 
 networks:

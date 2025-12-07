@@ -1,11 +1,12 @@
 # Docker Setup for korli
 
-This guide explains how to run korli using Docker and Docker Compose with Caddy for automatic SSL.
+This guide explains how to run korli using Docker and Docker Compose. Caddy must be installed separately on the host for SSL/HTTPS.
 
 ## Prerequisites
 
 - Docker (version 20.10 or later)
 - Docker Compose (version 2.0 or later)
+- Caddy installed on the host (for SSL/HTTPS)
 - A domain name pointing to your VPS (for SSL)
 
 ## Quick Start
@@ -17,10 +18,11 @@ This guide explains how to run korli using Docker and Docker Compose with Caddy 
 
 2. **Create and configure `.env` file:**
    ```bash
-   # Copy this template to .env and fill in your values
-   
    # Database Configuration
-   DATABASE_URL=mysql://korli:korli@database:3306/corelink
+   DATABASE_URL=mysql://root:password@localhost:3306/korli
+   # Or if using Docker MySQL:
+   # DATABASE_URL=mysql://korli:korli@database:3306/corelink
+   
    MYSQL_ROOT_PASSWORD=rootpassword
    MYSQL_DATABASE=corelink
    MYSQL_USER=korli
@@ -31,7 +33,7 @@ This guide explains how to run korli using Docker and Docker Compose with Caddy 
    BETTER_AUTH_URL=https://yourdomain.com
    NEXT_PUBLIC_BETTER_AUTH_URL=https://yourdomain.com
    
-   # Domain Configuration (for Caddy SSL)
+   # Domain Configuration
    DOMAIN=yourdomain.com
    
    # Site URL (for SEO and metadata)
@@ -41,136 +43,241 @@ This guide explains how to run korli using Docker and Docker Compose with Caddy 
    **Important:**
    - Generate `BETTER_AUTH_SECRET` with: `openssl rand -base64 32`
    - Replace `yourdomain.com` with your actual domain
-   - The `DATABASE_URL` uses `database` as hostname (Docker service name)
+   - If using external MySQL, use `localhost` in `DATABASE_URL`
+   - If using Docker MySQL, use `database` as hostname
 
-3. **Set your domain:**
-   - Set `DOMAIN=yourdomain.com` in your `.env` file (Caddy will auto-configure)
-
-4. **Build and start the services:**
+3. **Install Caddy on the host:**
    ```bash
-   docker-compose up -d --build
+   # Ubuntu/Debian
+   sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https
+   curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+   curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list
+   sudo apt update
+   sudo apt install caddy
+   
+   # Or use the official installer
+   # https://caddyserver.com/docs/install
    ```
 
-5. **Run database migrations:**
+4. **Configure Caddy:**
    ```bash
-   docker-compose exec frontend npx prisma migrate deploy
+   # Copy the example Caddyfile
+   sudo cp Caddyfile.example /etc/caddy/Caddyfile
+   
+   # Edit it with your domain
+   sudo nano /etc/caddy/Caddyfile
+   # Replace "korli.fr" with your domain
    ```
 
-6. **Generate Prisma Client (if needed):**
+5. **Build and start the Docker services:**
    ```bash
-   docker-compose exec frontend npx prisma generate
+   docker compose up -d --build
    ```
 
-7. **Access the application:**
-   - **Production (with domain):** https://yourdomain.com (SSL automatique via Caddy)
-   - **Development:** http://localhost (si DOMAIN=localhost)
-   - **Database:** Accessible only from within Docker network
+6. **Start Caddy:**
+   ```bash
+   sudo systemctl enable caddy
+   sudo systemctl start caddy
+   ```
+
+7. **Verify everything is running:**
+   ```bash
+   # Check Docker containers
+   docker compose ps
+   
+   # Check Caddy status
+   sudo systemctl status caddy
+   
+   # Check Caddy logs
+   sudo journalctl -u caddy -f
+   ```
 
 ## Services
 
-### Caddy (Reverse Proxy & SSL)
-- **Container:** `korli-caddy`
-- **Ports:** 80 (HTTP), 443 (HTTPS)
-- **Image:** `caddy:2-alpine`
-- **Features:**
-  - Automatic SSL certificates via Let's Encrypt
-  - HTTP to HTTPS redirect
-  - Reverse proxy to Next.js
-  - Security headers
-  - Gzip compression
-- **Volumes:** `caddy-data` (certificats SSL), `caddy-config` (configuration)
-- **Configuration:** Générée automatiquement dans docker-compose.yml (pas de fichier Caddyfile externe)
-
-### Frontend
+### Frontend (Next.js)
 - **Container:** `korli-frontend`
-- **Port:** 3000 (internal only, proxied by Caddy)
-- **Image:** Built from `Dockerfile`
+- **Port:** `3000` (exposed on localhost only, accessed by Caddy)
+- **Health Check:** `/api/health`
 
-### Database
+### Database (MySQL)
 - **Container:** `korli-database`
-- **Port:** 3306 (internal only)
-- **Image:** `mysql:8.0`
-- **Data:** Persisted in `mysql-data` volume
+- **Port:** `3306` (exposed on host)
+- **Default Database:** `corelink`
+- **Default User:** `korli`
 
-## Useful Commands
+### Caddy (on host)
+- **Ports:** `80` (HTTP), `443` (HTTPS)
+- **Config:** `/etc/caddy/Caddyfile`
+- **Auto SSL:** Let's Encrypt (automatic)
 
-### View logs
-```bash
-docker-compose logs -f caddy
-docker-compose logs -f frontend
-docker-compose logs -f database
-```
+## Configuration
 
-### Stop services
-```bash
-docker-compose down
-```
+### Using External MySQL
 
-### Stop and remove volumes (⚠️ deletes database data)
-```bash
-docker-compose down -v
-```
+If you have MySQL already installed on your VPS:
 
-### Rebuild after code changes
-```bash
-docker-compose up -d --build frontend
-```
+1. **Comment out the database service** in `docker-compose.yml`:
+   ```yaml
+   # database:
+   #   image: mysql:8.0
+   #   ...
+   ```
 
-### Access database
-```bash
-docker-compose exec database mysql -u korli -p corelink
-```
+2. **Update `.env`** to use `localhost`:
+   ```bash
+   DATABASE_URL=mysql://root:password@localhost:3306/korli
+   ```
 
-### Run Prisma commands
-```bash
-docker-compose exec frontend npx prisma studio
-docker-compose exec frontend npx prisma migrate dev
-```
+3. **Remove database dependency** from frontend:
+   ```yaml
+   # depends_on:
+   #   - database
+   ```
 
-## Production Deployment
+4. **Ensure MySQL accepts connections:**
+   ```bash
+   # Check MySQL is running
+   sudo systemctl status mysql
+   
+   # Create database and user
+   mysql -u root -p
+   CREATE DATABASE korli;
+   CREATE USER 'korli'@'localhost' IDENTIFIED BY 'password';
+   GRANT ALL PRIVILEGES ON korli.* TO 'korli'@'localhost';
+   FLUSH PRIVILEGES;
+   ```
 
-The Docker setup includes:
+### Caddy Configuration
 
-✅ **Caddy reverse proxy** with automatic SSL/TLS via Let's Encrypt
-✅ **Security headers** configured
-✅ **HTTP to HTTPS redirect**
-✅ **Network isolation** (database not exposed publicly)
+The `Caddyfile.example` shows a basic configuration. Caddy will automatically:
+- Obtain SSL certificate from Let's Encrypt
+- Handle ACME challenges
+- Redirect HTTP to HTTPS
+- Renew certificates automatically
 
-### Additional Production Considerations:
-
-1. **Use environment-specific `.env` files**
-2. **Set up monitoring** and logging (Caddy logs are in `caddy-logs` volume)
-3. **Configure backups** for the database
-4. **Use secrets management** (Docker secrets, AWS Secrets Manager, etc.)
-5. **Set up firewall** on your VPS (only ports 80 and 443 should be open)
-6. **Regular updates** of Docker images
-
-### SSL Certificate
-
-Caddy automatically obtains and renews SSL certificates from Let's Encrypt. Make sure:
+**Important:** Make sure:
 - Your domain DNS points to your VPS IP
 - Ports 80 and 443 are open in your firewall
-- The `DOMAIN` environment variable is set correctly
+- No other web server (nginx, apache) is using ports 80/443
 
 ## Troubleshooting
 
-### Database connection errors
-- Ensure the database container is healthy: `docker-compose ps`
-- Check database logs: `docker-compose logs database`
-- Verify `DATABASE_URL` in `.env` matches the service name `database`
+### Caddy can't obtain SSL certificate
 
-### Build failures
-- Clear Docker cache: `docker-compose build --no-cache`
-- Check Node.js version compatibility
-- Verify all dependencies are in `package.json`
+1. **Check DNS:**
+   ```bash
+   dig yourdomain.com +short
+   # Should return your VPS IP
+   ```
 
-### Port conflicts
-- Change ports in `docker-compose.yml` if 80 or 443 are already in use
-- Frontend (3000) and database (3306) are internal only and shouldn't conflict
+2. **Check ports are open:**
+   ```bash
+   sudo ufw status
+   # Ports 80 and 443 should be allowed
+   ```
 
-### SSL certificate issues
-- Ensure your domain DNS points to your VPS
-- Check Caddy logs: `docker-compose logs caddy`
-- Verify ports 80 and 443 are open: `sudo ufw status`
-- For staging, you can use `DOMAIN=localhost` (no SSL)
+3. **Check no other service uses ports 80/443:**
+   ```bash
+   sudo ss -tlnp | grep -E ':(80|443)'
+   # Should only show Caddy
+   ```
 
+4. **Check Caddy logs:**
+   ```bash
+   sudo journalctl -u caddy -f
+   ```
+
+### Frontend not accessible
+
+1. **Check frontend is running:**
+   ```bash
+   docker compose ps
+   docker compose logs frontend
+   ```
+
+2. **Test localhost connection:**
+   ```bash
+   curl http://localhost:3000/api/health
+   # Should return: {"status":"ok","timestamp":"..."}
+   ```
+
+3. **Check Caddy can reach frontend:**
+   ```bash
+   # From the host, test:
+   curl http://localhost:3000
+   ```
+
+### Database connection issues
+
+1. **Check database is running:**
+   ```bash
+   docker compose ps database
+   docker compose logs database
+   ```
+
+2. **Test connection:**
+   ```bash
+   # If using Docker MySQL:
+   docker compose exec database mysql -u korli -p corelink
+   
+   # If using external MySQL:
+   mysql -u korli -p -h localhost korli
+   ```
+
+3. **Check DATABASE_URL in .env:**
+   - Format: `mysql://user:password@host:port/database`
+   - Use `localhost` for external MySQL
+   - Use `database` for Docker MySQL
+
+## Maintenance
+
+### Update the application
+
+```bash
+git pull
+docker compose build
+docker compose up -d
+```
+
+### View logs
+
+```bash
+# All services
+docker compose logs -f
+
+# Specific service
+docker compose logs -f frontend
+docker compose logs -f database
+```
+
+### Backup database
+
+```bash
+# Docker MySQL
+docker compose exec database mysqldump -u korli -p corelink > backup.sql
+
+# External MySQL
+mysqldump -u korli -p -h localhost korli > backup.sql
+```
+
+### Restart services
+
+```bash
+# Restart all
+docker compose restart
+
+# Restart specific service
+docker compose restart frontend
+```
+
+## Production Checklist
+
+- [ ] Domain DNS points to VPS IP
+- [ ] Ports 80 and 443 are open
+- [ ] Caddy is installed and configured
+- [ ] SSL certificate is obtained (check with `curl -I https://yourdomain.com`)
+- [ ] Database is configured and accessible
+- [ ] Environment variables are set correctly
+- [ ] Firewall is configured
+- [ ] Regular backups are set up
+- [ ] Monitoring is configured (optional)

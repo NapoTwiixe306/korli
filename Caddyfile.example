@@ -1,0 +1,33 @@
+# Caddyfile example for korli.fr
+# Copy this file to /etc/caddy/Caddyfile (or your Caddy config location)
+# and replace korli.fr with your domain
+
+korli.fr {
+    # Reverse proxy to Next.js (running on localhost:3000)
+    reverse_proxy localhost:3000 {
+        health_uri /api/health
+        health_interval 10s
+        health_timeout 5s
+    }
+    
+    # Security headers
+    header {
+        -Server
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "SAMEORIGIN"
+        X-XSS-Protection "1; mode=block"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        Permissions-Policy "camera=(), microphone=(), geolocation=()"
+    }
+    
+    # Compression
+    encode gzip
+}
+
+# Caddy will automatically:
+# - Obtain SSL certificate from Let's Encrypt
+# - Handle ACME challenges
+# - Redirect HTTP to HTTPS
+# - Renew certificates automatically
+
