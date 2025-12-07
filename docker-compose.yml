@@ -20,11 +20,8 @@ services:
         DOMAIN_VAL=\"$$DOMAIN\"
       fi
       cat > /etc/caddy/Caddyfile << EOF
-      http://\$$DOMAIN_VAL {
-        redir https://\$$DOMAIN_VAL{uri} permanent
-      }
-      
-      https://\$$DOMAIN_VAL {
+      \$$DOMAIN_VAL {
+        # Handle ACME challenges first (Caddy does this automatically, but we ensure HTTP works)
         reverse_proxy frontend:3000 {
           health_uri /api/health
           health_interval 10s
