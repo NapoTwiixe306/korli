@@ -1,0 +1,150 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model User {
+  id            String         @id @default(cuid())
+  name          String?
+  email         String         @unique
+  emailVerified Boolean        @default(false)
+  image         String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  username      String?        @unique
+  accounts      Account[]
+  sessions      Session[]
+  userPage      UserPage?
+  verification  Verification[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  accountId             String
+  providerId            String
+  userId                String
+  accessToken           String?   @db.Text
+  refreshToken          String?   @db.Text
+  idToken               String?   @db.Text
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, accountId])
+  @@index([userId])
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([identifier, value])
+  @@index([userId], map: "Verification_userId_fkey")
+}
+
+model UserPage {
+  id         String      @id @default(cuid())
+  userId     String      @unique
+  username   String      @unique
+  bio        String?     @db.Text
+  avatar     String?
+  theme      String      @default("default")
+  layout     String      @default("list")
+
+  animations String      @default("all") // "all", "minimal", "none"
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  blocks     Block[]
+  pageViews  PageView[]
+  shortlinks Shortlink[]
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([username])
+  @@index([userId])
+}
+
+model Block {
+  id         String       @id @default(cuid())
+  userPageId String
+  type       String
+  title      String
+  url        String?      @db.Text
+  icon       String?
+  order      Int          @default(0)
+  isActive   Boolean      @default(true)
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  userPage   UserPage     @relation(fields: [userPageId], references: [id], onDelete: Cascade)
+  clicks     BlockClick[]
+
+  @@index([userPageId])
+  @@index([userPageId, order])
+}
+
+model PageView {
+  id         String   @id @default(cuid())
+  userPageId String
+  ipAddress  String?
+  userAgent  String?
+  referer    String?
+  createdAt  DateTime @default(now())
+  userPage   UserPage @relation(fields: [userPageId], references: [id], onDelete: Cascade)
+
+  @@index([userPageId])
+  @@index([userPageId, createdAt])
+}
+
+model BlockClick {
+  id        String   @id @default(cuid())
+  blockId   String
+  ipAddress String?
+  userAgent String?
+  referer   String?
+  createdAt DateTime @default(now())
+  block     Block    @relation(fields: [blockId], references: [id], onDelete: Cascade)
+
+  @@index([blockId])
+  @@index([blockId, createdAt])
+}
+
+model Shortlink {
+  id         String   @id @default(cuid())
+  userPageId String
+  alias      String   @unique
+  url        String   @db.Text
+  clicks     Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  userPage   UserPage @relation(fields: [userPageId], references: [id], onDelete: Cascade)
+
+  @@index([userPageId])
+  @@index([alias])
+}

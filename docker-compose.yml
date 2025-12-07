@@ -1,0 +1,105 @@
+services:
+  # Caddy - Reverse Proxy & SSL
+  caddy:
+    image: caddy:2-alpine
+    container_name: korli-caddy
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - caddy-data:/data
+      - caddy-config:/config
+    environment:
+      - DOMAIN=${DOMAIN:-localhost}
+    entrypoint: |
+      sh -c "
+      cat > /etc/caddy/Caddyfile << 'CADDYFILE'
+      http://$${DOMAIN:-localhost} {
+        redir https://$${DOMAIN:-localhost}{uri} permanent
+      }
+      
+      https://$${DOMAIN:-localhost} {
+        reverse_proxy frontend:3000 {
+          health_uri /api/health
+          health_interval 10s
+          health_timeout 5s
+        }
+        
+        header {
+          -Server
+          Strict-Transport-Security \"max-age=31536000; includeSubDomains; preload\"
+          X-Content-Type-Options \"nosniff\"
+          X-Frame-Options \"SAMEORIGIN\"
+          X-XSS-Protection \"1; mode=block\"
+          Referrer-Policy \"strict-origin-when-cross-origin\"
+          Permissions-Policy \"camera=(), microphone=(), geolocation=()\"
+        }
+        
+        encode gzip
+      }
+      CADDYFILE
+      exec caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
+      "
+    depends_on:
+      - frontend
+    restart: unless-stopped
+    networks:
+      - korli-network
+
+  # Frontend - Next.js Application
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: korli-frontend
+    # Don't expose port 3000 publicly, only to Caddy
+    expose:
+      - "3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=${DATABASE_URL}
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
+      - BETTER_AUTH_URL=${BETTER_AUTH_URL:-https://${DOMAIN:-localhost}}
+      - NEXT_PUBLIC_BETTER_AUTH_URL=${NEXT_PUBLIC_BETTER_AUTH_URL:-https://${DOMAIN:-localhost}}
+    depends_on:
+      - database
+    restart: unless-stopped
+    networks:
+      - korli-network
+
+  # Backend - MySQL Database
+  database:
+    image: mysql:8.0
+    container_name: korli-database
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-rootpassword}
+      - MYSQL_DATABASE=${MYSQL_DATABASE:-corelink}
+      - MYSQL_USER=${MYSQL_USER:-korli}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-korli}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    restart: unless-stopped
+    networks:
+      - korli-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mysql-data:
+    driver: local
+  caddy-data:
+    driver: local
+  caddy-config:
+    driver: local
+
+networks:
+  korli-network:
+    driver: bridge
+
