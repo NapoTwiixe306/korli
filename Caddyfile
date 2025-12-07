@@ -1,0 +1,8 @@
+korli.fr {
+    reverse_proxy localhost:3000
+}
+
+www.korli.fr {
+    redir https://korli.fr
+}
+
