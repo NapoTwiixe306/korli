@@ -14,12 +14,17 @@ services:
       - DOMAIN=${DOMAIN:-localhost}
     entrypoint: |
       sh -c "
-      cat > /etc/caddy/Caddyfile << 'CADDYFILE'
-      http://$${DOMAIN:-localhost} {
-        redir https://$${DOMAIN:-localhost}{uri} permanent
+      if [ -z \"$$DOMAIN\" ]; then
+        DOMAIN_VAL=\"localhost\"
+      else
+        DOMAIN_VAL=\"$$DOMAIN\"
+      fi
+      cat > /etc/caddy/Caddyfile << EOF
+      http://\$$DOMAIN_VAL {
+        redir https://\$$DOMAIN_VAL{uri} permanent
       }
       
-      https://$${DOMAIN:-localhost} {
+      https://\$$DOMAIN_VAL {
         reverse_proxy frontend:3000 {
           health_uri /api/health
           health_interval 10s
@@ -38,7 +43,7 @@ services:
         
         encode gzip
       }
-      CADDYFILE
+      EOF
       exec caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
       "
     depends_on:
