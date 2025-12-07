@@ -10,6 +10,11 @@ import type { NextRequest } from "next/server"
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 
+  // Let Caddy handle ACME challenges
+  if (pathname.startsWith("/.well-known/acme-challenge/")) {
+    return NextResponse.next()
+  }
+
   const publicRoutes = ["/login", "/register", "/"]
   const isPublicRoute = publicRoutes.includes(pathname) || pathname.startsWith("/api/auth")
 
@@ -29,4 +34,6 @@ export const config = {
   matcher: [
     "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
+  // Exclude .well-known from middleware to let Caddy handle ACME challenges
+  exclude: ["/.well-known/(.*)"],
 }
