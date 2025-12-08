@@ -30,17 +30,25 @@ export async function POST(request: NextRequest) {
     const file = formData.get("file") as File | null
 
     if (!file) {
+      console.error("Upload avatar: No file provided")
       return NextResponse.json(
         { error: "Aucun fichier fourni" },
         { status: 400 }
       )
     }
 
+    console.log("Upload avatar: File received", {
+      name: file.name,
+      type: file.type,
+      size: file.size,
+    })
+
     // Validate file type
     const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"]
     if (!allowedTypes.includes(file.type)) {
+      console.error("Upload avatar: Invalid file type", file.type)
       return NextResponse.json(
-        { error: "Type de fichier non autorisé. Utilisez JPEG, PNG, GIF ou WebP" },
+        { error: `Type de fichier non autorisé: ${file.type}. Utilisez JPEG, PNG, GIF ou WebP` },
         { status: 400 }
       )
     }
@@ -75,17 +83,36 @@ export async function POST(request: NextRequest) {
     
     if (fileExtension && extensionMap[fileExtension]) {
       if (!extensionMap[fileExtension].includes(file.type)) {
+        console.error("Upload avatar: Extension mismatch", {
+          extension: fileExtension,
+          mimeType: file.type,
+        })
         return NextResponse.json(
-          { error: "L'extension du fichier ne correspond pas au type MIME" },
+          { error: `L'extension du fichier (.${fileExtension}) ne correspond pas au type MIME (${file.type})` },
           { status: 400 }
         )
       }
+    } else if (!fileExtension) {
+      console.error("Upload avatar: No file extension")
+      return NextResponse.json(
+        { error: "Le fichier doit avoir une extension valide (.jpg, .png, .gif, .webp)" },
+        { status: 400 }
+      )
     }
 
     // Create avatars directory if it doesn't exist
     const avatarsDir = join(process.cwd(), "public", "avatars")
-    if (!existsSync(avatarsDir)) {
-      await mkdir(avatarsDir, { recursive: true })
+    try {
+      if (!existsSync(avatarsDir)) {
+        await mkdir(avatarsDir, { recursive: true })
+        console.log("Created avatars directory:", avatarsDir)
+      }
+    } catch (dirError) {
+      console.error("Error creating avatars directory:", dirError)
+      return NextResponse.json(
+        { error: "Erreur lors de la création du répertoire d'avatars" },
+        { status: 500 }
+      )
     }
 
     // Generate unique filename
@@ -95,13 +122,24 @@ export async function POST(request: NextRequest) {
     const filename = `${session.user.id}-${timestamp}-${randomString}.${finalExtension}`
     const filepath = join(avatarsDir, filename)
 
-    // Convert file to buffer and save
-    const bytes = await file.arrayBuffer()
-    const buffer = Buffer.from(bytes)
-    await writeFile(filepath, buffer)
+    console.log("Saving avatar to:", filepath)
 
-    // Generate public URL
-    const avatarUrl = `/avatars/${filename}`
+    // Convert file to buffer and save
+    try {
+      const bytes = await file.arrayBuffer()
+      const buffer = Buffer.from(bytes)
+      await writeFile(filepath, buffer)
+      console.log("Avatar saved successfully:", filename)
+    } catch (writeError) {
+      console.error("Error writing avatar file:", writeError)
+      return NextResponse.json(
+        { error: "Erreur lors de l'écriture du fichier avatar" },
+        { status: 500 }
+      )
+    }
+
+    // Generate public URL (use API route for serving)
+    const avatarUrl = `/api/avatars/${filename}`
 
     // Update user page with avatar URL
     const userPage = await prisma.userPage.update({
@@ -116,7 +154,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Error uploading avatar:", error)
     return NextResponse.json(
-      { error: "Erreur lors de l'upload de l'avatar" },
+      { error: error instanceof Error ? error.message : "Erreur lors de l'upload de l'avatar" },
       { status: 500 }
     )
   }

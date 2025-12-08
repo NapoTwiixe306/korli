@@ -30,6 +30,8 @@ services:
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
       - BETTER_AUTH_URL=${BETTER_AUTH_URL:-https://${DOMAIN:-localhost}}
       - NEXT_PUBLIC_BETTER_AUTH_URL=${NEXT_PUBLIC_BETTER_AUTH_URL:-https://${DOMAIN:-localhost}}
+    volumes:
+      - avatars-data:/app/public/avatars
     depends_on:
       - database
     networks:
@@ -63,6 +65,8 @@ volumes:
   caddy_data:
     driver: local
   caddy_config:
+    driver: local
+  avatars-data:
     driver: local
 
 networks:
