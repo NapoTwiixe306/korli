@@ -59,7 +59,7 @@ export default async function AnalyticsPage() {
   const uniqueVisitors = uniqueIPs.size
 
   // Calculate clicks per block
-  const blockStats = userPage.blocks.map((block) => ({
+  const blockStats = userPage.blocks.map((block: (typeof userPage.blocks)[number]) => ({
     id: block.id,
     title: block.title,
     clicks: block.clicks.length,
