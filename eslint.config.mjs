@@ -5,6 +5,14 @@ import nextTs from "eslint-config-next/typescript";
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
+  {
+    rules: {
+      // Avoid noisy JSX text escaping requirements across marketing copy.
+      "react/no-unescaped-entities": "off",
+      // Allow plain <a> in edge cases; we still prefer Link where relevant.
+      "@next/next/no-html-link-for-pages": "off",
+    },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:

@@ -66,9 +66,10 @@ export async function PATCH(
       if (icon !== undefined && icon !== null) {
         validateLength(icon, 1, 50, "L'icône")
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Données invalides"
       return NextResponse.json(
-        { error: error.message || "Données invalides" },
+        { error: message },
         { status: 400 }
       )
     }

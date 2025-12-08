@@ -1,11 +1,3 @@
-if (typeof window === 'undefined') {
-  try {
-    require('dotenv/config')
-  } catch {
-    // dotenv not available, Next.js will handle it
-  }
-}
-
 import { betterAuth } from "better-auth"
 import { prismaAdapter } from "better-auth/adapters/prisma"
 import { prisma } from "@/lib/prisma"

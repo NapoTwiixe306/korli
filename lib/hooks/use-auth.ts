@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 
 interface AuthState {
-  session: any
+  session: unknown | null
   loading: boolean
   signOut: () => Promise<void>
   isAuthenticated: boolean
@@ -25,7 +25,7 @@ interface AuthState {
  */
 export function useAuth(): AuthState {
   const router = useRouter()
-  const [session, setSession] = useState<any>(null)
+  const [session, setSession] = useState<unknown | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {

@@ -69,11 +69,12 @@ export async function POST(request: NextRequest) {
 
     // Better Auth handles cookies automatically
     return NextResponse.json({ success: true, user: result.user })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Login error:", error)
     
+    const message = error instanceof Error ? error.message : ""
     // Handle authentication errors
-    if (error?.message?.includes("Invalid") || error?.message?.includes("password") || error?.message?.includes("email")) {
+    if (message.includes("Invalid") || message.includes("password") || message.includes("email")) {
       return NextResponse.json(
         { error: "Email ou mot de passe incorrect" },
         { status: 401 }

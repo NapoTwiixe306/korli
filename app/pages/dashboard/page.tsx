@@ -67,9 +67,11 @@ export default async function DashboardPage() {
   const pageComplete = hasBio && hasAvatar && hasBlocks
   
   // Format dates
+  // eslint-disable-next-line react-hooks/purity
+  const now = Date.now()
   const createdDate = new Date(userPage.createdAt)
   const updatedDate = new Date(userPage.updatedAt)
-  const daysSinceCreation = Math.floor((Date.now() - createdDate.getTime()) / (1000 * 60 * 60 * 24))
+  const daysSinceCreation = Math.floor((now - createdDate.getTime()) / (1000 * 60 * 60 * 24))
   
   // Page URL
   const pageUrl = `${process.env.NEXT_PUBLIC_BETTER_AUTH_URL || 'http://localhost:3000'}/${userPage.username}`

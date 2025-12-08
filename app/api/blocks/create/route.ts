@@ -50,9 +50,10 @@ export async function POST(request: NextRequest) {
       if (icon) {
         validateLength(icon, 1, 50, "L'icône")
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Données invalides"
       return NextResponse.json(
-        { error: error.message || "Données invalides" },
+        { error: message },
         { status: 400 }
       )
     }
@@ -87,7 +88,7 @@ export async function POST(request: NextRequest) {
     })
 
     return NextResponse.json({ block }, { status: 201 })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error creating block:", error)
     return NextResponse.json(
       { error: "Erreur lors de la création du bloc" },

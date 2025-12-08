@@ -4,6 +4,7 @@ import { getThemeClasses, type Theme } from "@/lib/themes"
 import { getLayoutConfig, type LayoutType } from "@/lib/layouts"
 import { getAnimationClasses, type AnimationLevel } from "@/lib/animations"
 import Image from "next/image"
+import Link from "next/link"
 import { BlocksGrid } from "./blocks-grid"
 
 interface Block {
@@ -97,12 +98,12 @@ export function ThemedPage({
         {/* Footer */}
         <div className={`text-center text-xs ${styles.textSecondary}`}>
           Créé avec{" "}
-          <a
+          <Link
             href="/"
             className={`font-medium ${styles.textPrimary} hover:underline`}
           >
             korli
-          </a>
+          </Link>
         </div>
       </div>
     </div>
