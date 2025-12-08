@@ -48,7 +48,9 @@ export async function PATCH(request: NextRequest) {
 
     // Verify all blocks belong to user
     const blockIds = blockOrders.map((bo: { id: string }) => bo.id)
-    const userBlockIds = userPage.blocks.map((b) => b.id)
+    const userBlockIds = userPage.blocks.map(
+      (b: (typeof userPage.blocks)[number]) => b.id
+    )
     const allBlocksBelongToUser = blockIds.every((id: string) =>
       userBlockIds.includes(id)
     )
