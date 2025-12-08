@@ -38,29 +38,34 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-latest
+    env:
+      DEPLOY_DIR: ${{ secrets.VPS_APP_PATH }}
     steps:
-      - name: Checkout
+      - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Sync repository to VPS
-        uses: appleboy/ssh-action@v1.2.0
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.1
         with:
-          host: ${{ secrets.VPS_IP }}
-          username: ${{ secrets.VPS_USER }}
-          password: ${{ secrets.VPS_PASSWORD }}
-          port: ${{ secrets.VPS_PORT || 22 }}
-          script: |
+          ssh-private-key: ${{ secrets.VPS_SSH_KEY }}
+
+      - name: Test SSH
+        run: ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER || 'ubuntu' }}@${{ secrets.VPS_IP }} "echo SSH OK"
+
+      - name: Deploy to VPS
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER || 'ubuntu' }}@${{ secrets.VPS_IP }} "
             set -euo pipefail
-            APP_DIR=${{ secrets.VPS_APP_PATH }}
-            if [ ! -d "$APP_DIR/.git" ]; then
-              echo "App dir not found; cloning..."
-              git clone https://github.com/${{ github.repository }} "$APP_DIR"
+            if [ ! -d \"$DEPLOY_DIR/.git\" ]; then
+              echo 'Cloning repository...'
+              git clone https://github.com/${{ github.repository }} \"$DEPLOY_DIR\"
             fi
-            cd "$APP_DIR"
-            git fetch --all --prune
-            git checkout main
-            git pull origin main
-            docker compose pull
-            docker compose build --no-cache
-            docker compose up -d --remove-orphans
+            cd \"$DEPLOY_DIR\" &&
+            git fetch --all --prune &&
+            git checkout main &&
+            git pull origin main &&
+            docker compose up -d --build &&
+            docker network connect blueportel_default caddy_server || true &&
+            docker network connect umami_default caddy_server || true
+          "
 
