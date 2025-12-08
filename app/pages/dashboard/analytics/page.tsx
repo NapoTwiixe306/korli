@@ -172,8 +172,13 @@ export default async function AnalyticsPage() {
             ) : (
               <div className="space-y-3">
                 {blockStats
-                  .sort((a, b) => b.clicks - a.clicks)
-                  .map((stat) => (
+                  .sort(
+                    (
+                      a: (typeof blockStats)[number],
+                      b: (typeof blockStats)[number]
+                    ) => b.clicks - a.clicks
+                  )
+                  .map((stat: (typeof blockStats)[number]) => (
                     <div
                       key={stat.id}
                       className="flex items-center justify-between rounded-lg border border-zinc-200 p-3 dark:border-zinc-800"
