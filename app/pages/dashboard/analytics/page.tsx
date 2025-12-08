@@ -44,8 +44,8 @@ export default async function AnalyticsPage() {
 
   // Calculate stats
   const totalViews = userPage.pageViews.length
-  const totalClicks = userPage.blocks.reduce<number>(
-    (sum, block: (typeof userPage.blocks)[number]) => sum + block.clicks.length,
+  const totalClicks = userPage.blocks.reduce(
+    (sum: number, block: (typeof userPage.blocks)[number]) => sum + block.clicks.length,
     0
   )
   const ctr = totalViews > 0 ? ((totalClicks / totalViews) * 100).toFixed(1) : "0"
