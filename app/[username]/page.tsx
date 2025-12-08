@@ -63,7 +63,7 @@ export default async function UserPage({ params }: PageProps) {
 // Generate metadata for SEO
 export async function generateMetadata({ params }: PageProps) {
   const { username } = await params
-  const siteUrl = process.env.NEXT_PUBLIC_BETTER_AUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || "https://korli.app"
+  const siteUrl = process.env.NEXT_PUBLIC_BETTER_AUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || "https://korli.fr"
 
   const userPage = await prisma.userPage.findUnique({
     where: { username },

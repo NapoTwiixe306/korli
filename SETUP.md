@@ -107,7 +107,7 @@ korli/
 ✅ **Création automatique de page utilisateur**
 - Lors de l'inscription, une page est automatiquement créée
 - Génération automatique du username si non fourni
-- URL personnalisée : `korli.app/username`
+- URL personnalisée : `korli.fr/username`
 
 ✅ **Page publique utilisateur**
 - Affichage de la page avec avatar, bio et blocs

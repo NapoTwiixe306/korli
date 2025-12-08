@@ -190,7 +190,7 @@ export function SettingsPageClient({
               </button>
             </div>
             <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-500">
-              Votre URL : korli.app/{username}
+              Votre URL : korli.fr/{username}
             </p>
           </div>
           <div>

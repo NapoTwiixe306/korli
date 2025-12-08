@@ -129,7 +129,7 @@ export default function RegisterPage() {
               placeholder="jean-dupont"
             />
             <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-              Laissé vide, il sera généré automatiquement. Votre URL sera : korli.app/{username || "votre-nom"}
+              Laissé vide, il sera généré automatiquement. Votre URL sera : korli.fr/{username || "votre-nom"}
             </p>
           </div>
 

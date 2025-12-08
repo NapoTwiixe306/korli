@@ -69,7 +69,7 @@ This system turns a simple "link page" into a mini-landing page that adapts like
 ### 6.1 Public Page
 
 Accessible via:
-- `korli.app/username`
+- `korli.fr/username`
 
 Features:
 - Fully customizable design

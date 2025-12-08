@@ -3,7 +3,7 @@ import { Footer } from "./components/landing/footer"
 import { Navbar } from "./components/landing/navbar"
 import { LandingSections } from "./components/landing/sections"
 
-const siteUrl = process.env.NEXT_PUBLIC_BETTER_AUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || "https://korli.app"
+const siteUrl = process.env.NEXT_PUBLIC_BETTER_AUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || "https://korli.fr"
 
 export const metadata: Metadata = {
   title: "korli - Votre page de liens intelligente et adaptative",

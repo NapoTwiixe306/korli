@@ -39,10 +39,10 @@ export default function ContactPage() {
               Pour toute question générale ou demande de support
             </p>
             <a
-              href="mailto:contact@korli.app"
+              href="mailto:contact@korli.fr"
               className="mt-4 inline-block text-sm font-medium text-black underline dark:text-white"
             >
-              contact@korli.app
+              contact@korli.fr
             </a>
           </div>
 
