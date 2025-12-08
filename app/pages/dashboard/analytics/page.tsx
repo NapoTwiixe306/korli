@@ -53,7 +53,7 @@ export default async function AnalyticsPage() {
   // Get unique visitors (by IP) - simplified
   const uniqueIPs = new Set(
     userPage.pageViews
-      .map((pv) => pv.ipAddress)
+      .map((pv: (typeof userPage.pageViews)[number]) => pv.ipAddress)
       .filter((ip): ip is string => ip !== null)
   )
   const uniqueVisitors = uniqueIPs.size
