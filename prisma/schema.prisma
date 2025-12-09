@@ -75,6 +75,7 @@ model UserPage {
   userId               String      @unique
   username             String      @unique
   bio                  String?     @db.Text
+  subtitle             String?     @db.Text
   avatar               String?
   theme                String      @default("default")
   createdAt            DateTime    @default(now())

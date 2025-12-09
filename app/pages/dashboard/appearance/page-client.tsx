@@ -28,6 +28,7 @@ interface AppearancePageClientProps {
   initialSocialHeaderBlockIds?: string[]
   initialThemeConfig?: Record<string, unknown> | null
   initialBio: string | null
+  initialSubtitle: string | null
   userName: string
   username: string
   avatar: string | null
@@ -43,6 +44,7 @@ export function AppearancePageClient({
   initialSocialHeaderBlockIds = [],
   initialThemeConfig = null,
   initialBio,
+  initialSubtitle,
   userName,
   username,
   avatar,
@@ -53,6 +55,7 @@ export function AppearancePageClient({
   const [layout, setLayout] = useState<LayoutType>(initialLayout as LayoutType)
   const [animations, setAnimations] = useState<AnimationLevel>(initialAnimations)
   const [bio, setBio] = useState(initialBio || "")
+  const [subtitle, setSubtitle] = useState(initialSubtitle || "")
   const [socialHeaderEnabled, setSocialHeaderEnabled] = useState(initialSocialHeaderEnabled)
   const [socialHeaderBlockIds, setSocialHeaderBlockIds] = useState<string[]>(initialSocialHeaderBlockIds || [])
   const [themeConfig, setThemeConfig] = useState<Record<string, unknown>>(
@@ -112,6 +115,7 @@ export function AppearancePageClient({
   const [previewLayout, setPreviewLayout] = useState<LayoutType>(initialLayout as LayoutType)
   const [previewAnimations, setPreviewAnimations] = useState<AnimationLevel>(initialAnimations)
   const [previewBio, setPreviewBio] = useState(initialBio || "")
+  const [previewSubtitle, setPreviewSubtitle] = useState(initialSubtitle || "")
   const [previewAvatar, setPreviewAvatar] = useState(avatar)
   const [previewSocialEnabled, setPreviewSocialEnabled] = useState(initialSocialHeaderEnabled)
   const [previewSocialIds, setPreviewSocialIds] = useState<string[]>(initialSocialHeaderBlockIds || [])
@@ -226,6 +230,66 @@ export function AppearancePageClient({
     } finally {
       setSaving(false)
     }
+  }
+
+  const handleSubtitleSave = async () => {
+    setPreviewSubtitle(subtitle)
+    setSaving(true)
+    try {
+      const response = await fetch("/api/user-page/update-subtitle", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ subtitle }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Erreur lors de la sauvegarde")
+      }
+
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2000)
+      router.refresh()
+    } catch (error) {
+      alert("Erreur lors de la sauvegarde du sous-titre")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const applyFormatting = (tag: string) => {
+    const textarea = document.getElementById("subtitle-input") as HTMLTextAreaElement
+    if (!textarea) return
+
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const selectedText = subtitle.substring(start, end)
+    const beforeText = subtitle.substring(0, start)
+    const afterText = subtitle.substring(end)
+
+    let formattedText = ""
+    if (tag === "bold") {
+      formattedText = beforeText + `<strong>${selectedText || "texte"}</strong>` + afterText
+    } else if (tag === "italic") {
+      formattedText = beforeText + `<em>${selectedText || "texte"}</em>` + afterText
+    } else if (tag === "underline") {
+      formattedText = beforeText + `<u>${selectedText || "texte"}</u>` + afterText
+    }
+
+    setSubtitle(formattedText)
+    setPreviewSubtitle(formattedText)
+    
+    // Restore cursor position
+    setTimeout(() => {
+      textarea.focus()
+      const newPosition = tag === "bold" 
+        ? start + 8 + (selectedText.length || 5)
+        : tag === "italic"
+        ? start + 7 + (selectedText.length || 5)
+        : start + 7 + (selectedText.length || 5)
+      textarea.setSelectionRange(newPosition, newPosition)
+    }, 0)
   }
 
   const handleSocialHeaderSave = async () => {
@@ -431,6 +495,62 @@ export function AppearancePageClient({
 
                 <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
                   <h2 className="mb-4 text-lg font-semibold text-black dark:text-white">
+                    Sous-titre
+                  </h2>
+                  <p className="mb-3 text-sm text-zinc-600 dark:text-zinc-400">
+                    Ajoutez un sous-titre personnalisé sous votre nom d'utilisateur. Utilisez les boutons ci-dessous pour le formater.
+                  </p>
+                  <div className="mb-2 flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => applyFormatting("bold")}
+                      className="rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm font-bold text-black transition-colors hover:bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-800 dark:text-white dark:hover:bg-zinc-700"
+                      title="Gras"
+                    >
+                      <strong>B</strong>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => applyFormatting("italic")}
+                      className="rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm italic text-black transition-colors hover:bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-800 dark:text-white dark:hover:bg-zinc-700"
+                      title="Italique"
+                    >
+                      <em>I</em>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => applyFormatting("underline")}
+                      className="rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm underline text-black transition-colors hover:bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-800 dark:text-white dark:hover:bg-zinc-700"
+                      title="Souligné"
+                    >
+                      <u>U</u>
+                    </button>
+                  </div>
+                  <textarea
+                    id="subtitle-input"
+                    value={subtitle}
+                    onChange={(e) => {
+                      setSubtitle(e.target.value)
+                      setPreviewSubtitle(e.target.value)
+                    }}
+                    rows={3}
+                    className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-black shadow-sm focus:border-zinc-500 focus:outline-none focus:ring-zinc-500 dark:border-zinc-600 dark:bg-zinc-800 dark:text-white"
+                    placeholder="Ex: Founder @ Korli • 23 ans, Belgique"
+                  />
+                  <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
+                    Astuce: Sélectionnez du texte puis cliquez sur un bouton de formatage, ou cliquez directement sur un bouton pour insérer un tag.
+                  </p>
+                  <button
+                    onClick={handleSubtitleSave}
+                    disabled={saving || subtitle === (initialSubtitle || "")}
+                    className="mt-3 rounded-md bg-black px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:opacity-50 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
+                  >
+                    {saving ? "Enregistrement..." : "Enregistrer le sous-titre"}
+                  </button>
+                </div>
+
+                <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+                  <h2 className="mb-4 text-lg font-semibold text-black dark:text-white">
                     Bio
                   </h2>
                   <textarea
@@ -585,6 +705,7 @@ export function AppearancePageClient({
                 username={username}
                 avatar={previewAvatar}
                 userImage={userImage}
+                subtitle={previewSubtitle}
                 bio={previewBio}
                 blocks={blocks
                   .map((b) => ({

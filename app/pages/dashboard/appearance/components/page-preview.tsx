@@ -19,6 +19,7 @@ interface PagePreviewProps {
   username: string
   avatar: string | null
   userImage: string | null
+  subtitle?: string | null
   bio: string | null
   blocks: Block[]
   theme: string
@@ -31,6 +32,7 @@ export function PagePreview({
   username,
   avatar,
   userImage,
+  subtitle,
   bio,
   blocks,
   theme,
@@ -70,6 +72,12 @@ export function PagePreview({
             <h2 className={`text-lg font-bold ${styles.textPrimary}`}>
               {userName || username}
             </h2>
+            {subtitle && (
+              <div
+                className={`mt-1 text-sm ${styles.textSecondary} line-clamp-2`}
+                dangerouslySetInnerHTML={{ __html: subtitle }}
+              />
+            )}
             {bio && (
               <p className={`mt-1 text-sm ${styles.textSecondary} line-clamp-2`}>
                 {bio}

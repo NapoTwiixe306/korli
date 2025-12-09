@@ -57,6 +57,7 @@ export default async function AppearancePage() {
       initialLayout={userPage.layout || "list"}
       initialAnimations={(userPage.animations || "all") as "all" | "minimal" | "none"}
       initialBio={userPage.bio}
+      initialSubtitle={(userPage as unknown as { subtitle?: string | null }).subtitle ?? null}
       userName={userPage.user.name || ""}
       username={userPage.username}
       avatar={userPage.avatar}

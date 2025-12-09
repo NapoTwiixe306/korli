@@ -44,6 +44,7 @@ export default async function UserPage({ params }: PageProps) {
         username={username}
         avatar={userPage.avatar}
         userImage={userPage.user.image}
+        subtitle={(userPage as unknown as { subtitle?: string | null }).subtitle ?? null}
         bio={userPage.bio}
         blocks={userPage.blocks.map((block: typeof userPage.blocks[number]) => ({
           id: block.id,

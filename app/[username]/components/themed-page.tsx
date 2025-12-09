@@ -22,6 +22,7 @@ interface ThemedPageProps {
   username: string
   avatar: string | null
   userImage: string | null
+  subtitle: string | null
   bio: string | null
   blocks: Block[]
   theme: Theme
@@ -37,6 +38,7 @@ export function ThemedPage({
   username,
   avatar,
   userImage,
+  subtitle,
   bio,
   blocks,
   theme,
@@ -137,6 +139,13 @@ export function ThemedPage({
             <h1 className={`text-xl sm:text-2xl font-bold ${styles.textPrimary}`}>
               <span style={{ color: themeOverrides.usernameColor }}>{userName || username}</span>
             </h1>
+            {subtitle && (
+              <div
+                className={`mt-1 text-sm sm:text-base ${styles.textSecondary} break-words`}
+                style={{ color: themeOverrides.textSecondary }}
+                dangerouslySetInnerHTML={{ __html: subtitle }}
+              />
+            )}
             {bio && (
               <p
                 className={`mt-2 text-sm sm:text-base ${styles.textSecondary} break-words`}
