@@ -77,11 +77,10 @@ model UserPage {
   bio        String?     @db.Text
   avatar     String?
   theme      String      @default("default")
-  layout     String      @default("list")
-
-  animations String      @default("all") // "all", "minimal", "none"
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
+  layout     String      @default("list")
+  animations String      @default("all")
   blocks     Block[]
   pageViews  PageView[]
   shortlinks Shortlink[]

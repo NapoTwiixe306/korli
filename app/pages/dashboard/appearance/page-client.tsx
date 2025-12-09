@@ -15,6 +15,7 @@ interface Block {
   title: string
   url: string | null
   icon: string | null
+  type?: string | null
   order: number
   isActive: boolean
 }
@@ -23,6 +24,9 @@ interface AppearancePageClientProps {
   initialTheme: string
   initialLayout: string
   initialAnimations: AnimationLevel
+  initialSocialHeaderEnabled?: boolean
+  initialSocialHeaderBlockIds?: string[]
+  initialThemeConfig?: Record<string, unknown> | null
   initialBio: string | null
   userName: string
   username: string
@@ -35,6 +39,9 @@ export function AppearancePageClient({
   initialTheme,
   initialLayout,
   initialAnimations,
+  initialSocialHeaderEnabled = false,
+  initialSocialHeaderBlockIds = [],
+  initialThemeConfig = null,
   initialBio,
   userName,
   username,
@@ -46,13 +53,73 @@ export function AppearancePageClient({
   const [layout, setLayout] = useState<LayoutType>(initialLayout as LayoutType)
   const [animations, setAnimations] = useState<AnimationLevel>(initialAnimations)
   const [bio, setBio] = useState(initialBio || "")
+  const [socialHeaderEnabled, setSocialHeaderEnabled] = useState(initialSocialHeaderEnabled)
+  const [socialHeaderBlockIds, setSocialHeaderBlockIds] = useState<string[]>(initialSocialHeaderBlockIds || [])
+  const [themeConfig, setThemeConfig] = useState<Record<string, unknown>>(
+    initialThemeConfig || {
+      backgroundColor: "#ffffff",
+      textPrimary: "#111111",
+      textSecondary: "#4b5563",
+      cardBackground: "#ffffff",
+      borderColor: "#e5e7eb",
+      iconBackground: "#ffffff",
+      iconHoverBackground: "#f1f5f9",
+      usernameColor: "#111111",
+      iconRadius: 9999,
+    }
+  )
+
+  const themePresets: Record<string, Record<string, unknown>> = {
+    clair: {
+      backgroundColor: "#ffffff",
+      textPrimary: "#0f172a",
+      textSecondary: "#475569",
+      cardBackground: "#ffffff",
+      borderColor: "#e5e7eb",
+      iconBackground: "#ffffff",
+      iconHoverBackground: "#e2e8f0",
+      usernameColor: "#0f172a",
+      iconRadius: 9999,
+    },
+    sombre: {
+      backgroundColor: "#0b1220",
+      textPrimary: "#f8fafc",
+      textSecondary: "#cbd5e1",
+      cardBackground: "#0f172a",
+      borderColor: "#1e293b",
+      iconBackground: "#111827",
+      iconHoverBackground: "#1f2937",
+      usernameColor: "#f8fafc",
+      iconRadius: 14,
+    },
+    coloré: {
+      backgroundColor: "#0f172a",
+      textPrimary: "#e2e8f0",
+      textSecondary: "#cbd5e1",
+      cardBackground: "#111827",
+      borderColor: "#3b82f6",
+      iconBackground: "#3b82f6",
+      iconHoverBackground: "#2563eb",
+      usernameColor: "#e2e8f0",
+      iconRadius: 18,
+    },
+  }
   const [currentAvatar, setCurrentAvatar] = useState(avatar)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [previewTheme, setPreviewTheme] = useState(initialTheme)
+  const [previewLayout, setPreviewLayout] = useState<LayoutType>(initialLayout as LayoutType)
+  const [previewAnimations, setPreviewAnimations] = useState<AnimationLevel>(initialAnimations)
+  const [previewBio, setPreviewBio] = useState(initialBio || "")
+  const [previewAvatar, setPreviewAvatar] = useState(avatar)
+  const [previewSocialEnabled, setPreviewSocialEnabled] = useState(initialSocialHeaderEnabled)
+  const [previewSocialIds, setPreviewSocialIds] = useState<string[]>(initialSocialHeaderBlockIds || [])
+  const [previewThemeConfig, setPreviewThemeConfig] = useState<Record<string, unknown>>(themeConfig)
   const router = useRouter()
 
   const handleThemeChange = async (newTheme: string) => {
     setTheme(newTheme)
+    setPreviewTheme(newTheme)
     setSaving(true)
     try {
       const response = await fetch("/api/user-page/update-theme", {
@@ -80,6 +147,7 @@ export function AppearancePageClient({
 
   const handleLayoutChange = async (newLayout: LayoutType) => {
     setLayout(newLayout)
+    setPreviewLayout(newLayout)
     setSaving(true)
     try {
       const response = await fetch("/api/user-page/update-layout", {
@@ -107,6 +175,7 @@ export function AppearancePageClient({
 
   const handleAnimationsChange = async (newAnimations: AnimationLevel) => {
     setAnimations(newAnimations)
+    setPreviewAnimations(newAnimations)
     setSaving(true)
     try {
       const response = await fetch("/api/user-page/update-animations", {
@@ -133,6 +202,7 @@ export function AppearancePageClient({
   }
 
   const handleBioSave = async () => {
+    setPreviewBio(bio)
     setSaving(true)
     try {
       const response = await fetch("/api/user-page/update-bio", {
@@ -152,6 +222,56 @@ export function AppearancePageClient({
       router.refresh()
     } catch (error) {
       alert("Erreur lors de la sauvegarde de la bio")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleSocialHeaderSave = async () => {
+    setPreviewSocialEnabled(socialHeaderEnabled)
+    setPreviewSocialIds(socialHeaderBlockIds)
+    setSaving(true)
+    try {
+      const response = await fetch("/api/user-page/update-appearance", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          socialHeaderEnabled,
+          socialHeaderBlockIds,
+        }),
+      })
+      if (!response.ok) throw new Error("Erreur lors de la sauvegarde")
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2000)
+      router.refresh()
+    } catch (error) {
+      alert("Erreur lors de la sauvegarde des réseaux")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleThemeConfigSave = async () => {
+    setPreviewThemeConfig(themeConfig)
+    setSaving(true)
+    try {
+      const response = await fetch("/api/user-page/update-appearance", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          themeConfig,
+        }),
+      })
+      if (!response.ok) throw new Error("Erreur lors de la sauvegarde")
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2000)
+      router.refresh()
+    } catch (error) {
+      alert("Erreur lors de la sauvegarde du thème avancé")
     } finally {
       setSaving(false)
     }
@@ -179,6 +299,73 @@ export function AppearancePageClient({
 
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2 space-y-4 sm:space-y-6">
+            {/* Réseaux en header */}
+            <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg font-semibold text-black dark:text-white">Réseaux sous le nom</h2>
+                  <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                    Choisissez d’afficher certaines icônes (blocs avec icône) sous votre nom.
+                  </p>
+                </div>
+                <label className="inline-flex cursor-pointer items-center gap-2">
+                  <span className="text-sm text-zinc-700 dark:text-zinc-300">Afficher</span>
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4"
+                    checked={socialHeaderEnabled}
+                    onChange={(e) => setSocialHeaderEnabled(e.target.checked)}
+                  />
+                </label>
+              </div>
+
+              {socialHeaderEnabled && (
+                <div className="mt-4 space-y-3">
+                  <p className="text-sm text-zinc-600 dark:text-zinc-400">Sélectionnez les blocs à afficher (max 5 recommandés) :</p>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {blocks
+                      .filter((b) => b.icon && b.icon.startsWith("icon:") && b.url)
+                      .map((b) => {
+                        const checked = socialHeaderBlockIds.includes(b.id)
+                        return (
+                          <label
+                            key={b.id}
+                            className={`flex items-center gap-3 rounded-md border p-3 text-sm transition ${
+                              checked
+                                ? "border-black dark:border-white"
+                                : "border-zinc-200 dark:border-zinc-700 hover:border-zinc-400 dark:hover:border-zinc-500"
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSocialHeaderBlockIds([...socialHeaderBlockIds, b.id])
+                                } else {
+                                  setSocialHeaderBlockIds(socialHeaderBlockIds.filter((id) => id !== b.id))
+                                }
+                              }}
+                            />
+                            <div className="flex flex-col">
+                              <span className="font-medium text-black dark:text-white">{b.title}</span>
+                              <span className="text-xs text-zinc-500 dark:text-zinc-400 truncate">{b.url}</span>
+                            </div>
+                          </label>
+                        )
+                      })}
+                  </div>
+                  <button
+                    onClick={handleSocialHeaderSave}
+                    disabled={saving}
+                    className="rounded-md bg-black px-4 py-2 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:opacity-50 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
+                  >
+                    Enregistrer
+                  </button>
+                </div>
+              )}
+            </div>
+
             {/* Layout Selection */}
             <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
               <h2 className="mb-4 text-lg font-semibold text-black dark:text-white">
@@ -238,6 +425,7 @@ export function AppearancePageClient({
                 currentUserImage={userImage}
                 onAvatarChange={(newAvatar) => {
                   setCurrentAvatar(newAvatar)
+                  setPreviewAvatar(newAvatar)
                   router.refresh()
                 }}
               />
@@ -254,6 +442,7 @@ export function AppearancePageClient({
                 rows={4}
                 className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-black shadow-sm focus:border-zinc-500 focus:outline-none focus:ring-zinc-500 dark:border-zinc-600 dark:bg-zinc-800 dark:text-white"
                 placeholder="Décrivez-vous en quelques mots..."
+                onBlur={() => setPreviewBio(bio)}
               />
               <button
                 onClick={handleBioSave}
@@ -264,24 +453,98 @@ export function AppearancePageClient({
               </button>
             </div>
 
-            {/* Colors */}
+            {/* Thème avancé */}
             <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-              <h2 className="mb-4 text-lg font-semibold text-black dark:text-white">
-                Couleurs
-              </h2>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                Fonctionnalité à venir
-              </p>
-            </div>
-
-            {/* Fonts */}
-            <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-              <h2 className="mb-4 text-lg font-semibold text-black dark:text-white">
-                Polices
-              </h2>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                Fonctionnalité à venir
-              </p>
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h2 className="mb-1 text-lg font-semibold text-black dark:text-white">
+                    Thème avancé (couleurs / arrondis)
+                  </h2>
+                  <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                    Choisissez un preset, ajustez ensuite les couleurs clés et le radius.
+                  </p>
+                </div>
+              </div>
+              <div className="mb-4 flex flex-wrap gap-2">
+                {Object.entries(themePresets).map(([key, preset]) => (
+                  <button
+                    key={key}
+                    onClick={() => setThemeConfig(preset)}
+                    className="rounded-md border border-zinc-200 px-3 py-1 text-sm text-black hover:bg-zinc-100 dark:border-zinc-700 dark:text-white dark:hover:bg-zinc-800"
+                  >
+                    Préset {key}
+                  </button>
+                ))}
+                <button
+                  onClick={() =>
+                    setThemeConfig({
+                      backgroundColor: "#ffffff",
+                      textPrimary: "#111111",
+                      textSecondary: "#4b5563",
+                      cardBackground: "#ffffff",
+                      borderColor: "#e5e7eb",
+                      iconBackground: "#111111",
+                      iconHoverBackground: "#1f2937",
+                      iconRadius: 9999,
+                    })
+                  }
+                  className="rounded-md border border-zinc-200 px-3 py-1 text-sm text-black hover:bg-zinc-100 dark:border-zinc-700 dark:text-white dark:hover:bg-zinc-800"
+                >
+                  Réinitialiser
+                </button>
+              </div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {[
+                  { key: "backgroundColor", label: "Fond de page" },
+                  { key: "textPrimary", label: "Texte principal" },
+                  { key: "textSecondary", label: "Texte secondaire" },
+                  { key: "cardBackground", label: "Fond des cartes" },
+                  { key: "borderColor", label: "Couleur des bordures" },
+                  { key: "iconBackground", label: "Fond icônes header" },
+                  { key: "iconHoverBackground", label: "Fond icônes (hover)" },
+                  { key: "usernameColor", label: "Couleur du nom" },
+                ].map((item) => (
+                  <label key={item.key} className="flex items-center justify-between gap-3 text-sm text-black dark:text-white">
+                    <span>{item.label}</span>
+                    <input
+                      type="color"
+                      value={(themeConfig[item.key] as string) || "#ffffff"}
+                      onChange={(e) =>
+                        setThemeConfig({
+                          ...themeConfig,
+                          [item.key]: e.target.value,
+                        })
+                      }
+                      className="h-9 w-16 cursor-pointer rounded border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900"
+                    />
+                  </label>
+                ))}
+                <label className="flex items-center justify-between gap-3 text-sm text-black dark:text-white">
+                  <span>Radius icônes</span>
+                  <input
+                    type="number"
+                    min={0}
+                    max={9999}
+                    value={(themeConfig.iconRadius as number) ?? 9999}
+                    onChange={(e) =>
+                      setThemeConfig({
+                        ...themeConfig,
+                        iconRadius: Number(e.target.value),
+                      })
+                    }
+                    className="w-24 rounded border border-zinc-200 bg-white px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
+                  />
+                </label>
+              </div>
+              <div className="mt-4 flex justify-end">
+                <button
+                  onClick={handleThemeConfigSave}
+                  disabled={saving}
+                  className="rounded-md bg-black px-4 py-2 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:opacity-50 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
+                >
+                  Enregistrer
+                </button>
+              </div>
             </div>
           </div>
 
@@ -294,13 +557,22 @@ export function AppearancePageClient({
               <PagePreview
                 userName={userName}
                 username={username}
-                avatar={currentAvatar}
+                avatar={previewAvatar}
                 userImage={userImage}
-                bio={bio}
-                blocks={blocks}
-                theme={theme}
-                layout={layout}
-                animations={animations}
+                bio={previewBio}
+                blocks={blocks
+                  .map((b) => ({
+                    ...b,
+                    // hide header socials in preview list if selected
+                    isHidden:
+                      previewSocialEnabled &&
+                      previewSocialIds.includes(b.id) &&
+                      b.icon?.startsWith("icon:"),
+                  }))
+                  .filter((b) => !b.isHidden)}
+                theme={previewTheme}
+                layout={previewLayout}
+                animations={previewAnimations}
               />
               <p className="mt-4 text-center text-sm text-zinc-600 dark:text-zinc-400">
                 Aperçu de votre page

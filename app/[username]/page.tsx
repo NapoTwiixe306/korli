@@ -50,11 +50,19 @@ export default async function UserPage({ params }: PageProps) {
           title: block.title,
           url: block.url,
           icon: block.icon,
+          type: block.type,
           order: block.order,
         }))}
         theme={userPage.theme as "default" | "minimal" | "dark" | "colorful"}
         layout={userPage.layout || "list"}
         animations={userPage.animations || "all"}
+        socialHeaderEnabled={(userPage as any).socialHeaderEnabled}
+        socialHeaderBlockIds={
+          Array.isArray((userPage as any).socialHeaderBlockIds)
+            ? ((userPage as any).socialHeaderBlockIds as string[])
+            : []
+        }
+        themeConfig={((userPage as any).themeConfig as Record<string, unknown> | null) || null}
       />
     </>
   )
