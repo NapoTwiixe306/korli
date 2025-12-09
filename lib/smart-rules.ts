@@ -32,20 +32,52 @@ export interface RuleAction {
  * Detect traffic source from referer URL
  */
 export function detectTrafficSource(referer: string | null | undefined): string {
-  if (!referer) return "direct"
+  if (!referer) {
+    console.log("⚠️ No referer detected, returning 'direct'")
+    return "direct"
+  }
 
   const refererLower = referer.toLowerCase()
+  console.log("🔍 Analyzing referer:", refererLower)
 
-  if (refererLower.includes("tiktok.com")) return "tiktok"
-  if (refererLower.includes("instagram.com") || refererLower.includes("ig.me")) return "instagram"
-  if (refererLower.includes("youtube.com") || refererLower.includes("youtu.be")) return "youtube"
-  if (refererLower.includes("twitter.com") || refererLower.includes("x.com")) return "twitter"
-  if (refererLower.includes("google.com") || refererLower.includes("google.fr")) return "google"
-  if (refererLower.includes("facebook.com")) return "facebook"
-  if (refererLower.includes("linkedin.com")) return "linkedin"
-  if (refererLower.includes("pinterest.com")) return "pinterest"
-  if (refererLower.includes("snapchat.com")) return "snapchat"
+  if (refererLower.includes("tiktok.com")) {
+    console.log("✅ Detected: tiktok")
+    return "tiktok"
+  }
+  if (refererLower.includes("instagram.com") || refererLower.includes("ig.me")) {
+    console.log("✅ Detected: instagram")
+    return "instagram"
+  }
+  if (refererLower.includes("youtube.com") || refererLower.includes("youtu.be")) {
+    console.log("✅ Detected: youtube")
+    return "youtube"
+  }
+  if (refererLower.includes("twitter.com") || refererLower.includes("x.com")) {
+    console.log("✅ Detected: twitter")
+    return "twitter"
+  }
+  if (refererLower.includes("google.com") || refererLower.includes("google.fr")) {
+    console.log("✅ Detected: google")
+    return "google"
+  }
+  if (refererLower.includes("facebook.com")) {
+    console.log("✅ Detected: facebook")
+    return "facebook"
+  }
+  if (refererLower.includes("linkedin.com")) {
+    console.log("✅ Detected: linkedin")
+    return "linkedin"
+  }
+  if (refererLower.includes("pinterest.com")) {
+    console.log("✅ Detected: pinterest")
+    return "pinterest"
+  }
+  if (refererLower.includes("snapchat.com")) {
+    console.log("✅ Detected: snapchat")
+    return "snapchat"
+  }
 
+  console.log("⚠️ Unknown referer, returning 'direct'")
   return "direct"
 }
 

@@ -29,6 +29,7 @@ interface Block {
 
 interface SmartRule {
   id: string
+  name: string
   isActive: boolean
   priority: number
   conditions: RuleCondition
@@ -76,6 +77,10 @@ export function ThemedPage({
     const referer = document.referrer || null
     const userAgent = navigator.userAgent || null
 
+    // Check URL parameters for traffic source (useful when referer is blocked)
+    const urlParams = new URLSearchParams(window.location.search)
+    const sourceParam = urlParams.get("utm_source") || urlParams.get("source")
+
     // Check if returning visitor (using localStorage)
     const visitorId = `visitor_${window.location.pathname}`
     const isReturningVisitor = localStorage.getItem(visitorId) !== null
@@ -86,9 +91,30 @@ export function ThemedPage({
     // Get IP from headers (will be null on client, but structure is ready)
     const ipAddress = null
 
-    const info = getTrafficInfo(referer, userAgent, ipAddress, isReturningVisitor)
+    // Use source param if referer is not available
+    const effectiveReferer = referer || (sourceParam ? `https://${sourceParam}.com` : null)
+
+    const info = getTrafficInfo(effectiveReferer, userAgent, ipAddress, isReturningVisitor)
+    
+    // Debug logging (always enabled for troubleshooting)
+    console.log("🔍 Smart Rules Debug:", {
+      referer,
+      sourceParam,
+      effectiveReferer,
+      detectedSource: info.source,
+      device: info.device,
+      visitorType: info.visitorType,
+      rulesCount: smartRules.length,
+      activeRulesCount: smartRules.filter((r) => r.isActive).length,
+      activeRules: smartRules.filter((r) => r.isActive).map((r) => ({
+        name: r.name,
+        priority: r.priority,
+        conditions: r.conditions,
+      })),
+    })
+    
     setTrafficInfo(info)
-  }, [])
+  }, [smartRules])
 
   useEffect(() => {
     if (!trafficInfo) return
@@ -100,10 +126,34 @@ export function ThemedPage({
       .filter((r) => r.isActive)
       .sort((a, b) => b.priority - a.priority)
 
+    // Debug: log matching rules
+    console.log("📋 Active rules:", activeRules.map((r) => ({
+      name: r.name,
+      priority: r.priority,
+      conditions: r.conditions,
+      actions: r.actions,
+    })))
+
     // Apply each matching rule
+    let ruleApplied = false
     for (const rule of activeRules) {
-      if (matchesConditions(trafficInfo, rule.conditions)) {
+      const matches = matchesConditions(trafficInfo, rule.conditions)
+      console.log(`🔍 Rule "${rule.name}":`, {
+        matches,
+        conditions: rule.conditions,
+        trafficInfo,
+        willApply: matches,
+      })
+      
+      if (matches) {
+        ruleApplied = true
+        const beforeCount = processedBlocks.length
         processedBlocks = applyRuleAction(processedBlocks, rule.actions)
+        console.log(`✅ Rule "${rule.name}" applied. Blocks: ${beforeCount} → ${processedBlocks.length}`, {
+          actionType: rule.actions.type,
+          blockIds: rule.actions.blockIds,
+          order: rule.actions.order,
+        })
       }
     }
 
@@ -115,8 +165,15 @@ export function ThemedPage({
     )
 
     if (!hasReorderRule && trafficInfo.source !== "direct") {
+      const beforeAutoReorder = processedBlocks.length
       processedBlocks = autoReorderByTrafficSource(processedBlocks, trafficInfo.source)
+      console.log("🔄 Auto-reorder applied for source:", trafficInfo.source, {
+        before: beforeAutoReorder,
+        after: processedBlocks.length,
+      })
     }
+
+    console.log("📦 Final blocks order:", processedBlocks.map((b, idx) => `${idx + 1}. ${b.title}`))
 
     setBlocks(processedBlocks)
   }, [trafficInfo, smartRules, initialBlocks])
