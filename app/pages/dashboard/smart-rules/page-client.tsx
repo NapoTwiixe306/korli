@@ -140,7 +140,7 @@ export function SmartRulesPageClient({
       parts.push(`Source: ${conditions.trafficSource.join(", ")}`)
     }
     if (conditions.device && conditions.device.length > 0) {
-      parts.push(`Device: ${conditions.device.join(", ")}`)
+      parts.push(`Appareil: ${conditions.device.join(", ")}`)
     }
     if (conditions.country && conditions.country.length > 0) {
       parts.push(`Pays: ${conditions.country.join(", ")}`)
@@ -178,7 +178,7 @@ export function SmartRulesPageClient({
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-black dark:text-white">
-              Smart Rules
+              Règles intelligentes
             </h1>
             <p className="mt-2 text-sm sm:text-base text-zinc-600 dark:text-zinc-400">
               Configurez des règles conditionnelles pour personnaliser l'affichage de vos blocs

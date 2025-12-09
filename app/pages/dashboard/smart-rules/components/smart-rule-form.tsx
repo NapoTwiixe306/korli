@@ -272,7 +272,7 @@ export function SmartRuleForm({
             {/* Device */}
             <div className="mb-4">
               <label className="mb-2 block text-sm font-medium text-black dark:text-white">
-                Device
+                Appareil
               </label>
               <div className="flex gap-2">
                 {["mobile", "desktop"].map((device) => (
@@ -286,7 +286,7 @@ export function SmartRuleForm({
                         : "border border-zinc-300 bg-white text-black hover:bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-800 dark:text-white dark:hover:bg-zinc-700"
                     }`}
                   >
-                    {device === "mobile" ? "Mobile" : "Desktop"}
+                    {device === "mobile" ? "Mobile" : "Bureau"}
                   </button>
                 ))}
               </div>

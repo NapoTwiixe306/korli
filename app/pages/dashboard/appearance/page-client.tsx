@@ -456,42 +456,42 @@ export function AppearancePageClient({
 
             {activeTab === "general" && (
               <div className="space-y-4 sm:space-y-6">
-                <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-                  <h2 className="mb-4 text-lg font-semibold text-black dark:text-white">
-                    Disposition
-                  </h2>
-                  <LayoutSelector
-                    currentLayout={layout}
-                    onLayoutChange={handleLayoutChange}
-                    saving={saving}
-                  />
-                </div>
+            <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+              <h2 className="mb-4 text-lg font-semibold text-black dark:text-white">
+                Disposition
+              </h2>
+              <LayoutSelector
+                currentLayout={layout}
+                onLayoutChange={handleLayoutChange}
+                saving={saving}
+              />
+            </div>
 
-                <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-                  <h2 className="mb-4 text-lg font-semibold text-black dark:text-white">
-                    Animations
-                  </h2>
-                  <AnimationsSelector
-                    currentAnimations={animations}
-                    onAnimationsChange={handleAnimationsChange}
-                    saving={saving}
-                  />
-                </div>
+            <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+              <h2 className="mb-4 text-lg font-semibold text-black dark:text-white">
+                Animations
+              </h2>
+              <AnimationsSelector
+                currentAnimations={animations}
+                onAnimationsChange={handleAnimationsChange}
+                saving={saving}
+              />
+            </div>
 
-                <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-                  <h2 className="mb-4 text-lg font-semibold text-black dark:text-white">
-                    Avatar
-                  </h2>
-                  <AvatarUpload
-                    currentAvatar={currentAvatar}
-                    currentUserImage={userImage}
-                    onAvatarChange={(newAvatar) => {
-                      setCurrentAvatar(newAvatar)
+            <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+              <h2 className="mb-4 text-lg font-semibold text-black dark:text-white">
+                Avatar
+              </h2>
+              <AvatarUpload
+                currentAvatar={currentAvatar}
+                currentUserImage={userImage}
+                onAvatarChange={(newAvatar) => {
+                  setCurrentAvatar(newAvatar)
                       setPreviewAvatar(newAvatar)
-                      router.refresh()
-                    }}
-                  />
-                </div>
+                  router.refresh()
+                }}
+              />
+            </div>
 
                 <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
                   <h2 className="mb-4 text-lg font-semibold text-black dark:text-white">
@@ -549,65 +549,70 @@ export function AppearancePageClient({
                   </button>
                 </div>
 
-                <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-                  <h2 className="mb-4 text-lg font-semibold text-black dark:text-white">
-                    Bio
-                  </h2>
-                  <textarea
-                    value={bio}
-                    onChange={(e) => setBio(e.target.value)}
-                    rows={4}
-                    className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-black shadow-sm focus:border-zinc-500 focus:outline-none focus:ring-zinc-500 dark:border-zinc-600 dark:bg-zinc-800 dark:text-white"
-                    placeholder="Décrivez-vous en quelques mots..."
+            <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+              <h2 className="mb-4 text-lg font-semibold text-black dark:text-white">
+                Bio
+              </h2>
+              <textarea
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                rows={4}
+                className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-black shadow-sm focus:border-zinc-500 focus:outline-none focus:ring-zinc-500 dark:border-zinc-600 dark:bg-zinc-800 dark:text-white"
+                placeholder="Décrivez-vous en quelques mots..."
                     onBlur={() => setPreviewBio(bio)}
-                  />
-                  <button
-                    onClick={handleBioSave}
-                    disabled={saving || bio === (initialBio || "")}
-                    className="mt-3 rounded-md bg-black px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:opacity-50 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
-                  >
-                    {saving ? "Enregistrement..." : "Enregistrer la bio"}
-                  </button>
-                </div>
+              />
+              <button
+                onClick={handleBioSave}
+                disabled={saving || bio === (initialBio || "")}
+                className="mt-3 rounded-md bg-black px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:opacity-50 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
+              >
+                {saving ? "Enregistrement..." : "Enregistrer la bio"}
+              </button>
+            </div>
               </div>
             )}
 
             {activeTab === "theme" && (
               <div className="space-y-4 sm:space-y-6">
-                <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-                  <h2 className="mb-4 text-lg font-semibold text-black dark:text-white">
+            <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+              <h2 className="mb-4 text-lg font-semibold text-black dark:text-white">
                     Thème
-                  </h2>
+              </h2>
                   <div className="grid gap-4 sm:grid-cols-2">
-                    {["default", "minimal", "dark", "colorful"].map((themeOption) => (
+                    {[
+                      { value: "default", label: "Par défaut" },
+                      { value: "minimal", label: "Minimal" },
+                      { value: "dark", label: "Sombre" },
+                      { value: "colorful", label: "Coloré" },
+                    ].map((themeOption) => (
                       <button
-                        key={themeOption}
-                        onClick={() => handleThemeChange(themeOption)}
+                        key={themeOption.value}
+                        onClick={() => handleThemeChange(themeOption.value)}
                         disabled={saving}
                         className={`rounded-lg border-2 p-4 text-left transition-colors ${
-                          theme === themeOption
+                          theme === themeOption.value
                             ? "border-black dark:border-white"
                             : "border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-600"
                         } disabled:opacity-50`}
                       >
-                        <div className="font-medium text-black dark:text-white capitalize">
-                          {themeOption}
+                        <div className="font-medium text-black dark:text-white">
+                          {themeOption.label}
                         </div>
                       </button>
                     ))}
                   </div>
-                </div>
+            </div>
 
-                <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+            <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <h2 className="mb-1 text-lg font-semibold text-black dark:text-white">
                         Thème avancé (couleurs / arrondis)
-                      </h2>
-                      <p className="text-sm text-zinc-600 dark:text-zinc-400">
+              </h2>
+              <p className="text-sm text-zinc-600 dark:text-zinc-400">
                         Choisissez un preset, ajustez ensuite les couleurs clés et le radius.
-                      </p>
-                    </div>
+              </p>
+            </div>
                   </div>
                   <div className="mb-4 flex flex-wrap gap-2">
                     {Object.entries(themePresets).map(([key, preset]) => (
@@ -616,7 +621,7 @@ export function AppearancePageClient({
                         onClick={() => setThemeConfig(preset)}
                         className="rounded-md border border-zinc-200 px-3 py-1 text-sm text-black hover:bg-zinc-100 dark:border-zinc-700 dark:text-white dark:hover:bg-zinc-800"
                       >
-                        Préset {key}
+                        Préset {key === "clair" ? "Clair" : key === "sombre" ? "Sombre" : "Coloré"}
                       </button>
                     ))}
                     <button

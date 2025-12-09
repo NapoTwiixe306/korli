@@ -82,7 +82,7 @@ export default async function DashboardPage() {
         {/* Header */}
         <div className="mb-6 sm:mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-black dark:text-white">
-            Overview
+            Vue d'ensemble
           </h1>
           <p className="mt-2 text-sm sm:text-base text-zinc-600 dark:text-zinc-400">
             Vue d'ensemble de votre page korli
