@@ -39,7 +39,7 @@ export default async function TrafficSourcesPage() {
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-black dark:text-white">
-            Traffic Sources
+            Sources de trafic
           </h1>
           <p className="mt-2 text-zinc-600 dark:text-zinc-400">
             Analysez d'où viennent vos visiteurs

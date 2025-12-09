@@ -23,20 +23,20 @@ import {
 } from "lucide-react"
 
 const navItems = [
-  { href: "/pages/dashboard", label: "Overview", icon: LayoutDashboard },
+  { href: "/pages/dashboard", label: "Vue d'ensemble", icon: LayoutDashboard },
   { href: "/pages/dashboard/insights", label: "Insights", icon: BarChart3 },
-  { href: "/pages/dashboard/recommendations", label: "Recommendations", icon: Lightbulb },
-  { href: "/pages/dashboard/blocks", label: "Blocks", icon: Blocks },
-  { href: "/pages/dashboard/appearance", label: "Appearance", icon: Palette },
-  { href: "/pages/dashboard/smart-rules", label: "Smart Rules", icon: Sparkles, disabled: true },
+  { href: "/pages/dashboard/recommendations", label: "Recommandations", icon: Lightbulb },
+  { href: "/pages/dashboard/blocks", label: "Blocs", icon: Blocks },
+  { href: "/pages/dashboard/appearance", label: "Apparence", icon: Palette },
+  { href: "/pages/dashboard/smart-rules", label: "Règles intelligentes", icon: Sparkles, disabled: true },
   { href: "/pages/dashboard/analytics", label: "Analytics", icon: BarChart3 },
-  { href: "/pages/dashboard/traffic-sources", label: "Traffic Sources", icon: Globe },
+  { href: "/pages/dashboard/traffic-sources", label: "Sources de trafic", icon: Globe },
   { href: "/pages/dashboard/performance", label: "Performance", icon: Activity },
-  { href: "/pages/dashboard/profile", label: "Profile", icon: User },
-  { href: "/pages/dashboard/billing", label: "Billing", icon: CreditCard },
-  { href: "/pages/dashboard/settings", label: "Settings", icon: Settings },
-  { href: "/pages/dashboard/shortlinks", label: "Shortlinks", icon: Link2 },
-  { href: "/pages/dashboard/mini-forms", label: "Mini-Forms", icon: FileText },
+  { href: "/pages/dashboard/profile", label: "Profil", icon: User },
+  { href: "/pages/dashboard/billing", label: "Facturation", icon: CreditCard },
+  { href: "/pages/dashboard/settings", label: "Paramètres", icon: Settings },
+  { href: "/pages/dashboard/shortlinks", label: "Liens courts", icon: Link2 },
+  { href: "/pages/dashboard/mini-forms", label: "Mini-formulaires", icon: FileText },
 ]
 
 export function MobileMenu() {
@@ -85,7 +85,7 @@ export function MobileMenu() {
                   <Icon className="h-4 w-4" />
                   <span>{item.label}</span>
                   {item.disabled && (
-                    <span className="ml-auto text-xs text-zinc-400">Soon</span>
+                    <span className="ml-auto text-xs text-zinc-400">Bientôt</span>
                   )}
                 </button>
               )
