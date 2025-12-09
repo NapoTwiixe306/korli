@@ -36,6 +36,15 @@ export default async function UserPage({ params }: PageProps) {
     notFound()
   }
 
+  // Safely get subtitle, defaulting to null if column doesn't exist
+  let subtitle: string | null = null
+  try {
+    subtitle = (userPage as unknown as { subtitle?: string | null }).subtitle ?? null
+  } catch {
+    // Column doesn't exist yet, use null
+    subtitle = null
+  }
+
   return (
     <>
       <PageViewTracker userPageId={userPage.id} />
@@ -44,7 +53,7 @@ export default async function UserPage({ params }: PageProps) {
         username={username}
         avatar={userPage.avatar}
         userImage={userPage.user.image}
-        subtitle={(userPage as unknown as { subtitle?: string | null }).subtitle ?? null}
+        subtitle={subtitle}
         bio={userPage.bio}
         blocks={userPage.blocks.map((block: typeof userPage.blocks[number]) => ({
           id: block.id,
