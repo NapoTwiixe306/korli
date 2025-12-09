@@ -73,7 +73,7 @@ export async function PATCH(request: NextRequest) {
     )
 
     return NextResponse.json({ success: true })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error reordering blocks:", error)
     return NextResponse.json(
       { error: "Erreur lors du réordonnancement des blocs" },
