@@ -343,40 +343,6 @@ export function LandingSections() {
         </div>
       </section>
 
-      {/* Social Proof Section */}
-      <section id="social-proof" className="bg-zinc-50 py-16 sm:py-24 dark:bg-zinc-950 transition-colors duration-300">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-3xl text-center">
-            <h2 className="text-3xl font-bold tracking-tight text-black sm:text-4xl dark:text-white">
-              Exemples et retours de créateurs
-            </h2>
-            <p className="mt-4 text-lg text-zinc-700 dark:text-zinc-300">
-              Découvre comment d'autres créateurs utilisent korli pour monétiser, partager leurs contenus et suivre leurs stats.
-            </p>
-          </div>
-          <div className="mx-auto mt-12 grid max-w-5xl grid-cols-1 gap-6 md:grid-cols-3">
-            <div className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-              <p className="text-sm text-zinc-700 dark:text-zinc-300">
-                “J’ai remplacé Linktree par korli : plus rapide, plus de stats, et mes liens courts intégrés.”
-              </p>
-              <div className="mt-4 text-sm font-semibold text-black dark:text-white">@studio_anais</div>
-            </div>
-            <div className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-              <p className="text-sm text-zinc-700 dark:text-zinc-300">
-                “Les blocs par défaut m’ont fait gagner du temps. Ma page était prête en quelques minutes.”
-              </p>
-              <div className="mt-4 text-sm font-semibold text-black dark:text-white">@julien_crea</div>
-            </div>
-            <div className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-              <p className="text-sm text-zinc-700 dark:text-zinc-300">
-                “Le SEO et les données structurées sont déjà gérés. J’ai juste ajouté mes liens et mon domaine.”
-              </p>
-              <div className="mt-4 text-sm font-semibold text-black dark:text-white">@leacom</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Final CTA Section */}
       <section id="cta" className="bg-black py-20 sm:py-32 dark:bg-zinc-950 transition-colors duration-300">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
