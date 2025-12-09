@@ -91,29 +91,71 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const structuredData = {
-    "@context": "https://schema.org",
-    "@type": "WebApplication",
-    name: "korli",
-    description: "The Intelligent Link Identity Platform",
-    url: siteUrl,
-    applicationCategory: "SocialNetworkingApplication",
-    operatingSystem: "Web",
-    offers: {
-      "@type": "Offer",
-      price: "0",
-      priceCurrency: "EUR",
+  const structuredData = [
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      name: "korli",
+      description: "The Intelligent Link Identity Platform",
+      url: siteUrl,
+      applicationCategory: "SocialNetworkingApplication",
+      operatingSystem: "Web",
+      offers: {
+        "@type": "Offer",
+        price: "0",
+        priceCurrency: "EUR",
+      },
+      aggregateRating: {
+        "@type": "AggregateRating",
+        ratingValue: "4.8",
+        ratingCount: "150",
+      },
     },
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue: "4.8",
-      ratingCount: "150",
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      name: "korli",
+      url: siteUrl,
+      logo: `${siteUrl}/og-image.png`,
+      sameAs: ["https://korli.fr"],
     },
-  }
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      name: "korli",
+      url: siteUrl,
+      potentialAction: {
+        "@type": "SearchAction",
+        target: `${siteUrl}/s/{{search_term_string}}`,
+        "query-input": "required name=search_term_string",
+      },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "ProfessionalService",
+      name: "korli",
+      url: siteUrl,
+      serviceType: "Digital link-in-bio builder and analytics",
+      areaServed: "Worldwide",
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "Accueil",
+          item: siteUrl,
+        },
+      ],
+    },
+  ]
 
   return (
-    <html lang="en">
+    <html lang="fr">
       <head>
+        <meta httpEquiv="Content-Language" content="fr" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{

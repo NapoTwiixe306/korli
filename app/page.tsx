@@ -7,7 +7,7 @@ const siteUrl = process.env.NEXT_PUBLIC_BETTER_AUTH_URL || process.env.NEXT_PUBL
 
 export const metadata: Metadata = {
   title: "korli - Votre page de liens intelligente et adaptative",
-  description: "Créez une page de liens qui s'adapte à chaque visiteur. Plus qu'un simple lien dans votre bio, korli transforme votre présence digitale en une expérience personnalisée. Analytics gratuits, design personnalisable, shortlinks intégrés.",
+  description: "Créez une page de liens qui s'adapte à chaque visiteur. Design personnalisable, analytics gratuits, shortlinks intégrés.",
   keywords: [
     "page de liens",
     "link in bio",
