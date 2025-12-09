@@ -19,11 +19,19 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-COPY --from=builder /app ./
+# Copy standalone server
+COPY --from=builder /app/.next/standalone ./
+# Copy static files - Next.js expects them at .next/static relative to server.js location
+COPY --from=builder /app/.next/static ./.next/static
+# Copy public files
+COPY --from=builder /app/public ./public
 
 ENV NODE_ENV=production
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
 
 EXPOSE 3000
 
-CMD ["node", ".next/standalone/server.js"]
+# Next.js standalone server
+CMD ["node", "server.js"]
 
