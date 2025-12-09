@@ -1,0 +1,7 @@
+{
+  "version": "1.0",
+  "policy": "disallow",
+  "description": "Korli refuse l'exploration TDM/IA de ses contenus sans accord préalable.",
+  "contact": "mailto:julien.milants@gmail.com"
+}
+

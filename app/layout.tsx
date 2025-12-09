@@ -140,6 +140,34 @@ export default function RootLayout({
     },
     {
       "@context": "https://schema.org",
+      "@type": "OfferCatalog",
+      name: "korli Plans",
+      itemListElement: [
+        {
+          "@type": "Offer",
+          name: "Free",
+          price: "0",
+          priceCurrency: "EUR",
+          description: "15 blocks, basic themes, basic analytics",
+        },
+        {
+          "@type": "Offer",
+          name: "Pro",
+          price: "5",
+          priceCurrency: "EUR",
+          description: "Unlimited blocks, advanced themes, basic smart rules, advanced analytics",
+        },
+        {
+          "@type": "Offer",
+          name: "Pro+",
+          price: "12-17",
+          priceCurrency: "EUR",
+          description: "All smart rules, A/B testing, custom domain, advanced shortlinks, automations (later)",
+        },
+      ],
+    },
+    {
+      "@context": "https://schema.org",
       "@type": "BreadcrumbList",
       itemListElement: [
         {
@@ -156,6 +184,9 @@ export default function RootLayout({
     <html lang="fr">
       <head>
         <meta httpEquiv="Content-Language" content="fr" />
+        <meta name="robots" content="index,follow,noai,noimageai" />
+        <meta httpEquiv="X-Robots-Tag" content="noai,noimageai" />
+        <meta name="tdm-reservation" content="1" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
