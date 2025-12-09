@@ -51,7 +51,7 @@ const navSections: NavSection[] = [
     items: [
       { href: "/pages/dashboard/blocks", label: "Blocks", icon: <Blocks className="h-4 w-4" /> },
       { href: "/pages/dashboard/appearance", label: "Appearance", icon: <Palette className="h-4 w-4" /> },
-      { href: "/pages/dashboard/smart-rules", label: "Smart Rules", icon: <Sparkles className="h-4 w-4" />, disabled: true },
+      { href: "/pages/dashboard/smart-rules", label: "Smart Rules", icon: <Sparkles className="h-4 w-4" /> },
     ],
   },
   {

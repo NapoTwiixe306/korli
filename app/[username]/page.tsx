@@ -29,8 +29,16 @@ export default async function UserPage({ params }: PageProps) {
           order: "asc",
         },
       },
-    },
-  })
+      smartRules: {
+        where: {
+          isActive: true,
+        },
+        orderBy: {
+          priority: "desc",
+        },
+      },
+    } as any,
+  }) as any
 
   if (!userPage) {
     notFound()
@@ -45,6 +53,34 @@ export default async function UserPage({ params }: PageProps) {
     subtitle = null
   }
 
+  const initialBlocks = userPage.blocks.map((block: typeof userPage.blocks[number]) => ({
+    id: block.id,
+    title: block.title,
+    url: block.url,
+    icon: block.icon,
+    type: block.type,
+    order: block.order,
+  }))
+
+  const smartRules = (userPage.smartRules || []).map((rule: typeof userPage.smartRules[number]) => ({
+    id: rule.id,
+    isActive: rule.isActive,
+    priority: rule.priority,
+    conditions: rule.conditions as unknown as {
+      trafficSource?: string[]
+      device?: string[]
+      country?: string[]
+      timeRange?: { start: string; end: string }
+      dayOfWeek?: number[]
+      visitorType?: "new" | "returning"
+    },
+    actions: rule.actions as unknown as {
+      type: "show" | "hide" | "reorder"
+      blockIds?: string[]
+      order?: number[]
+    },
+  }))
+
   return (
     <>
       <PageViewTracker userPageId={userPage.id} />
@@ -55,14 +91,8 @@ export default async function UserPage({ params }: PageProps) {
         userImage={userPage.user.image}
         subtitle={subtitle}
         bio={userPage.bio}
-        blocks={userPage.blocks.map((block: typeof userPage.blocks[number]) => ({
-          id: block.id,
-          title: block.title,
-          url: block.url,
-          icon: block.icon,
-          type: block.type,
-          order: block.order,
-        }))}
+        blocks={initialBlocks}
+        smartRules={smartRules}
         theme={userPage.theme as "default" | "minimal" | "dark" | "colorful"}
         layout={userPage.layout || "list"}
         animations={userPage.animations || "all"}

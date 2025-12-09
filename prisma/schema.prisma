@@ -75,19 +75,20 @@ model UserPage {
   userId               String      @unique
   username             String      @unique
   bio                  String?     @db.Text
-  subtitle             String?     @db.Text
   avatar               String?
   theme                String      @default("default")
   createdAt            DateTime    @default(now())
   updatedAt            DateTime    @updatedAt
-  layout               String      @default("list")
   animations           String      @default("all")
-  socialHeaderEnabled  Boolean     @default(false)
+  layout               String      @default("list")
   socialHeaderBlockIds Json?
+  socialHeaderEnabled  Boolean     @default(false)
+  subtitle             String?     @db.Text
   themeConfig          Json?
   blocks               Block[]
   pageViews            PageView[]
   shortlinks           Shortlink[]
+  smartRules           SmartRule[]
   user                 User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([username])
@@ -150,4 +151,21 @@ model Shortlink {
 
   @@index([userPageId])
   @@index([alias])
+}
+
+model SmartRule {
+  id         String   @id @default(cuid())
+  userPageId String
+  name       String
+  isActive   Boolean  @default(true)
+  priority   Int      @default(0)
+  conditions Json
+  actions    Json
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  userPage   UserPage @relation(fields: [userPageId], references: [id], onDelete: Cascade)
+
+  @@index([userPageId])
+  @@index([userPageId, priority])
+  @@index([userPageId, isActive])
 }

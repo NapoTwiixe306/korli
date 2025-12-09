@@ -1,9 +1,19 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { getThemeClasses, type Theme } from "@/lib/themes"
 import { getLayoutConfig, type LayoutType } from "@/lib/layouts"
 import { getAnimationClasses, type AnimationLevel } from "@/lib/animations"
 import { getSocialIcon } from "@/lib/social-icons"
+import {
+  getTrafficInfo,
+  matchesConditions,
+  applyRuleAction,
+  autoReorderByTrafficSource,
+  type TrafficInfo,
+  type RuleCondition,
+  type RuleAction,
+} from "@/lib/smart-rules"
 import Image from "next/image"
 import Link from "next/link"
 import { BlocksGrid } from "./blocks-grid"
@@ -17,6 +27,14 @@ interface Block {
   order: number
 }
 
+interface SmartRule {
+  id: string
+  isActive: boolean
+  priority: number
+  conditions: RuleCondition
+  actions: RuleAction
+}
+
 interface ThemedPageProps {
   userName: string
   username: string
@@ -25,6 +43,7 @@ interface ThemedPageProps {
   subtitle: string | null
   bio: string | null
   blocks: Block[]
+  smartRules?: SmartRule[]
   theme: Theme
   layout: string
   animations?: string
@@ -40,7 +59,8 @@ export function ThemedPage({
   userImage,
   subtitle,
   bio,
-  blocks,
+  blocks: initialBlocks,
+  smartRules = [],
   theme,
   layout,
   animations = "all",
@@ -48,6 +68,59 @@ export function ThemedPage({
   socialHeaderBlockIds = [],
   themeConfig = null,
 }: ThemedPageProps) {
+  const [blocks, setBlocks] = useState<Block[]>(initialBlocks)
+  const [trafficInfo, setTrafficInfo] = useState<TrafficInfo | null>(null)
+
+  useEffect(() => {
+    // Get referer and user agent from browser
+    const referer = document.referrer || null
+    const userAgent = navigator.userAgent || null
+
+    // Check if returning visitor (using localStorage)
+    const visitorId = `visitor_${window.location.pathname}`
+    const isReturningVisitor = localStorage.getItem(visitorId) !== null
+    if (!isReturningVisitor) {
+      localStorage.setItem(visitorId, Date.now().toString())
+    }
+
+    // Get IP from headers (will be null on client, but structure is ready)
+    const ipAddress = null
+
+    const info = getTrafficInfo(referer, userAgent, ipAddress, isReturningVisitor)
+    setTrafficInfo(info)
+  }, [])
+
+  useEffect(() => {
+    if (!trafficInfo) return
+
+    let processedBlocks = [...initialBlocks]
+
+    // Sort rules by priority (highest first)
+    const activeRules = smartRules
+      .filter((r) => r.isActive)
+      .sort((a, b) => b.priority - a.priority)
+
+    // Apply each matching rule
+    for (const rule of activeRules) {
+      if (matchesConditions(trafficInfo, rule.conditions)) {
+        processedBlocks = applyRuleAction(processedBlocks, rule.actions)
+      }
+    }
+
+    // Auto-reorder by traffic source if no reorder rule was applied
+    const hasReorderRule = activeRules.some(
+      (r) =>
+        matchesConditions(trafficInfo, r.conditions) &&
+        r.actions.type === "reorder"
+    )
+
+    if (!hasReorderRule && trafficInfo.source !== "direct") {
+      processedBlocks = autoReorderByTrafficSource(processedBlocks, trafficInfo.source)
+    }
+
+    setBlocks(processedBlocks)
+  }, [trafficInfo, smartRules, initialBlocks])
+
   const styles = getThemeClasses(theme)
   const animClasses = getAnimationClasses(animations as AnimationLevel)
   const displayAvatar = avatar || userImage
