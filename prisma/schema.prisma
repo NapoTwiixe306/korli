@@ -85,6 +85,7 @@ model UserPage {
   socialHeaderEnabled  Boolean     @default(false)
   subtitle             String?     @db.Text
   themeConfig          Json?
+  customTrafficSources Json?       // [{ name: string, domains: string[] }]
   blocks               Block[]
   pageViews            PageView[]
   shortlinks           Shortlink[]

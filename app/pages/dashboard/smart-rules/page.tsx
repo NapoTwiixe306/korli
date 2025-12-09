@@ -73,9 +73,15 @@ export default async function SmartRulesPage() {
     }
   })
 
+  const customTrafficSources = ((userPage as any)?.customTrafficSources || []) as Array<{
+    name: string
+    domains: string[]
+  }>
+
   return (
     <SmartRulesPageClient
       initialRules={mappedRules}
+      initialCustomSources={customTrafficSources}
       blocks={(userPage.blocks || []).map((b: any) => ({
         id: b.id,
         title: b.title,

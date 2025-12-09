@@ -28,56 +28,43 @@ export interface RuleAction {
   order?: number[] // For reorder action
 }
 
+export interface CustomTrafficSource {
+  name: string
+  domains: string[]
+}
+
 /**
  * Detect traffic source from referer URL
  */
-export function detectTrafficSource(referer: string | null | undefined): string {
-  if (!referer) {
-    console.log("⚠️ No referer detected, returning 'direct'")
-    return "direct"
-  }
+export function detectTrafficSource(
+  referer: string | null | undefined,
+  customSources?: CustomTrafficSource[]
+): string {
+  if (!referer) return "direct"
 
   const refererLower = referer.toLowerCase()
-  console.log("🔍 Analyzing referer:", refererLower)
 
-  if (refererLower.includes("tiktok.com")) {
-    console.log("✅ Detected: tiktok")
-    return "tiktok"
-  }
-  if (refererLower.includes("instagram.com") || refererLower.includes("ig.me")) {
-    console.log("✅ Detected: instagram")
-    return "instagram"
-  }
-  if (refererLower.includes("youtube.com") || refererLower.includes("youtu.be")) {
-    console.log("✅ Detected: youtube")
-    return "youtube"
-  }
-  if (refererLower.includes("twitter.com") || refererLower.includes("x.com")) {
-    console.log("✅ Detected: twitter")
-    return "twitter"
-  }
-  if (refererLower.includes("google.com") || refererLower.includes("google.fr")) {
-    console.log("✅ Detected: google")
-    return "google"
-  }
-  if (refererLower.includes("facebook.com")) {
-    console.log("✅ Detected: facebook")
-    return "facebook"
-  }
-  if (refererLower.includes("linkedin.com")) {
-    console.log("✅ Detected: linkedin")
-    return "linkedin"
-  }
-  if (refererLower.includes("pinterest.com")) {
-    console.log("✅ Detected: pinterest")
-    return "pinterest"
-  }
-  if (refererLower.includes("snapchat.com")) {
-    console.log("✅ Detected: snapchat")
-    return "snapchat"
+  // Check custom sources first (higher priority)
+  if (customSources && customSources.length > 0) {
+    for (const customSource of customSources) {
+      if (customSource.domains.some((domain) => refererLower.includes(domain.toLowerCase()))) {
+        return customSource.name.toLowerCase()
+      }
+    }
   }
 
-  console.log("⚠️ Unknown referer, returning 'direct'")
+  // Built-in sources
+  if (refererLower.includes("tiktok.com")) return "tiktok"
+  if (refererLower.includes("instagram.com") || refererLower.includes("ig.me")) return "instagram"
+  if (refererLower.includes("youtube.com") || refererLower.includes("youtu.be")) return "youtube"
+  if (refererLower.includes("twitter.com") || refererLower.includes("x.com")) return "twitter"
+  if (refererLower.includes("github.com")) return "github"
+  if (refererLower.includes("google.com") || refererLower.includes("google.fr")) return "google"
+  if (refererLower.includes("facebook.com")) return "facebook"
+  if (refererLower.includes("linkedin.com")) return "linkedin"
+  if (refererLower.includes("pinterest.com")) return "pinterest"
+  if (refererLower.includes("snapchat.com")) return "snapchat"
+
   return "direct"
 }
 
@@ -241,20 +228,37 @@ export function applyRuleAction<T extends { id: string }>(
  */
 export function autoReorderByTrafficSource<T extends { id: string; url: string | null }>(
   blocks: T[],
-  trafficSource: string
+  trafficSource: string,
+  customSources?: CustomTrafficSource[]
 ): T[] {
   const sourceDomains: Record<string, string[]> = {
     tiktok: ["tiktok.com"],
     instagram: ["instagram.com", "ig.me"],
     youtube: ["youtube.com", "youtu.be"],
     twitter: ["twitter.com", "x.com"],
+    github: ["github.com"],
     facebook: ["facebook.com", "fb.com"],
     linkedin: ["linkedin.com"],
     pinterest: ["pinterest.com"],
     snapchat: ["snapchat.com"],
   }
 
-  const relevantDomains = sourceDomains[trafficSource] || []
+  // Check custom sources first
+  let relevantDomains: string[] = []
+  if (customSources && customSources.length > 0) {
+    const customSource = customSources.find(
+      (s) => s.name.toLowerCase() === trafficSource.toLowerCase()
+    )
+    if (customSource) {
+      relevantDomains = customSource.domains
+    }
+  }
+
+  // Fallback to built-in sources
+  if (relevantDomains.length === 0) {
+    relevantDomains = sourceDomains[trafficSource] || []
+  }
+
   if (relevantDomains.length === 0) return blocks
 
   const matching: T[] = []
@@ -281,12 +285,13 @@ export function getTrafficInfo(
   referer: string | null | undefined,
   userAgent: string | null | undefined,
   ipAddress: string | null | undefined,
-  isReturningVisitor: boolean
+  isReturningVisitor: boolean,
+  customSources?: CustomTrafficSource[]
 ): TrafficInfo {
   const now = new Date()
 
   return {
-    source: detectTrafficSource(referer),
+    source: detectTrafficSource(referer, customSources),
     device: detectDevice(userAgent),
     country: detectCountry(ipAddress),
     time: {

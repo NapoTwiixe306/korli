@@ -23,9 +23,15 @@ interface SmartRule {
   }
 }
 
+interface CustomTrafficSource {
+  name: string
+  domains: string[]
+}
+
 interface SmartRuleFormProps {
   rule: SmartRule | null
   blocks: Array<{ id: string; title: string; url: string | null }>
+  customTrafficSources?: CustomTrafficSource[]
   onClose: () => void
   onSuccess: () => void
 }
@@ -35,6 +41,7 @@ const TRAFFIC_SOURCES = [
   { value: "instagram", label: "Instagram" },
   { value: "youtube", label: "YouTube" },
   { value: "twitter", label: "Twitter/X" },
+  { value: "github", label: "GitHub" },
   { value: "facebook", label: "Facebook" },
   { value: "linkedin", label: "LinkedIn" },
   { value: "pinterest", label: "Pinterest" },
@@ -42,6 +49,15 @@ const TRAFFIC_SOURCES = [
   { value: "google", label: "Google" },
   { value: "direct", label: "Direct" },
 ]
+
+function getAllTrafficSources(customSources: CustomTrafficSource[] = []) {
+  const builtIn = TRAFFIC_SOURCES
+  const custom = customSources.map((source) => ({
+    value: source.name.toLowerCase(),
+    label: source.name,
+  }))
+  return [...builtIn, ...custom]
+}
 
 const DAYS_OF_WEEK = [
   { value: 0, label: "Dimanche" },
@@ -53,7 +69,13 @@ const DAYS_OF_WEEK = [
   { value: 6, label: "Samedi" },
 ]
 
-export function SmartRuleForm({ rule, blocks, onClose, onSuccess }: SmartRuleFormProps) {
+export function SmartRuleForm({
+  rule,
+  blocks,
+  customTrafficSources = [],
+  onClose,
+  onSuccess,
+}: SmartRuleFormProps) {
   const conditions = rule?.conditions || {}
   const actions = rule?.actions || { type: "show" }
   
@@ -230,7 +252,7 @@ export function SmartRuleForm({ rule, blocks, onClose, onSuccess }: SmartRuleFor
                 Source du trafic
               </label>
               <div className="flex flex-wrap gap-2">
-                {TRAFFIC_SOURCES.map((source) => (
+                {getAllTrafficSources(customTrafficSources).map((source) => (
                   <button
                     key={source.value}
                     type="button"

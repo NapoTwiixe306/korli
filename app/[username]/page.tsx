@@ -81,6 +81,11 @@ export default async function UserPage({ params }: PageProps) {
     },
   }))
 
+  const customTrafficSources = ((userPage as any).customTrafficSources || []) as Array<{
+    name: string
+    domains: string[]
+  }>
+
   return (
     <>
       <PageViewTracker userPageId={userPage.id} />
@@ -93,6 +98,7 @@ export default async function UserPage({ params }: PageProps) {
         bio={userPage.bio}
         blocks={initialBlocks}
         smartRules={smartRules}
+        customTrafficSources={customTrafficSources}
         theme={userPage.theme as "default" | "minimal" | "dark" | "colorful"}
         layout={userPage.layout || "list"}
         animations={userPage.animations || "all"}

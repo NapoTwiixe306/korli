@@ -36,6 +36,11 @@ interface SmartRule {
   actions: RuleAction
 }
 
+interface CustomTrafficSource {
+  name: string
+  domains: string[]
+}
+
 interface ThemedPageProps {
   userName: string
   username: string
@@ -45,6 +50,7 @@ interface ThemedPageProps {
   bio: string | null
   blocks: Block[]
   smartRules?: SmartRule[]
+  customTrafficSources?: CustomTrafficSource[]
   theme: Theme
   layout: string
   animations?: string
@@ -62,6 +68,7 @@ export function ThemedPage({
   bio,
   blocks: initialBlocks,
   smartRules = [],
+  customTrafficSources = [],
   theme,
   layout,
   animations = "all",
@@ -94,24 +101,27 @@ export function ThemedPage({
     // Use source param if referer is not available
     const effectiveReferer = referer || (sourceParam ? `https://${sourceParam}.com` : null)
 
-    const info = getTrafficInfo(effectiveReferer, userAgent, ipAddress, isReturningVisitor)
-    
-    // Debug logging (always enabled for troubleshooting)
-    console.log("🔍 Smart Rules Debug:", {
-      referer,
-      sourceParam,
+    const info = getTrafficInfo(
       effectiveReferer,
-      detectedSource: info.source,
-      device: info.device,
-      visitorType: info.visitorType,
-      rulesCount: smartRules.length,
-      activeRulesCount: smartRules.filter((r) => r.isActive).length,
-      activeRules: smartRules.filter((r) => r.isActive).map((r) => ({
-        name: r.name,
-        priority: r.priority,
-        conditions: r.conditions,
-      })),
-    })
+      userAgent,
+      ipAddress,
+      isReturningVisitor,
+      customTrafficSources
+    )
+    
+    // Debug logging (development only)
+    if (process.env.NODE_ENV === "development") {
+      console.log("🔍 Smart Rules Debug:", {
+        referer,
+        sourceParam,
+        effectiveReferer,
+        detectedSource: info.source,
+        device: info.device,
+        visitorType: info.visitorType,
+        rulesCount: smartRules.length,
+        activeRulesCount: smartRules.filter((r) => r.isActive).length,
+      })
+    }
     
     setTrafficInfo(info)
   }, [smartRules])
@@ -126,34 +136,23 @@ export function ThemedPage({
       .filter((r) => r.isActive)
       .sort((a, b) => b.priority - a.priority)
 
-    // Debug: log matching rules
-    console.log("📋 Active rules:", activeRules.map((r) => ({
-      name: r.name,
-      priority: r.priority,
-      conditions: r.conditions,
-      actions: r.actions,
-    })))
-
     // Apply each matching rule
-    let ruleApplied = false
     for (const rule of activeRules) {
       const matches = matchesConditions(trafficInfo, rule.conditions)
-      console.log(`🔍 Rule "${rule.name}":`, {
-        matches,
-        conditions: rule.conditions,
-        trafficInfo,
-        willApply: matches,
-      })
+      
+      if (process.env.NODE_ENV === "development") {
+        console.log(`🔍 Rule "${rule.name}":`, {
+          matches,
+          conditions: rule.conditions,
+          trafficInfo,
+        })
+      }
       
       if (matches) {
-        ruleApplied = true
-        const beforeCount = processedBlocks.length
         processedBlocks = applyRuleAction(processedBlocks, rule.actions)
-        console.log(`✅ Rule "${rule.name}" applied. Blocks: ${beforeCount} → ${processedBlocks.length}`, {
-          actionType: rule.actions.type,
-          blockIds: rule.actions.blockIds,
-          order: rule.actions.order,
-        })
+        if (process.env.NODE_ENV === "development") {
+          console.log(`✅ Rule "${rule.name}" applied`)
+        }
       }
     }
 
@@ -165,15 +164,15 @@ export function ThemedPage({
     )
 
     if (!hasReorderRule && trafficInfo.source !== "direct") {
-      const beforeAutoReorder = processedBlocks.length
-      processedBlocks = autoReorderByTrafficSource(processedBlocks, trafficInfo.source)
-      console.log("🔄 Auto-reorder applied for source:", trafficInfo.source, {
-        before: beforeAutoReorder,
-        after: processedBlocks.length,
-      })
+      processedBlocks = autoReorderByTrafficSource(
+        processedBlocks,
+        trafficInfo.source,
+        customTrafficSources
+      )
+      if (process.env.NODE_ENV === "development") {
+        console.log("🔄 Auto-reorder applied for source:", trafficInfo.source)
+      }
     }
-
-    console.log("📦 Final blocks order:", processedBlocks.map((b, idx) => `${idx + 1}. ${b.title}`))
 
     setBlocks(processedBlocks)
   }, [trafficInfo, smartRules, initialBlocks])

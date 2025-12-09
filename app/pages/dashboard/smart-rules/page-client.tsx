@@ -1,8 +1,9 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Sparkles, Plus, Edit, Trash2, Eye, EyeOff, ArrowUp, ArrowDown } from "lucide-react"
+import { Sparkles, Plus, Edit, Trash2, Eye, EyeOff, ArrowUp, ArrowDown, Settings, X } from "lucide-react"
 import { SmartRuleForm } from "./components/smart-rule-form"
+import { CustomSourcesModal } from "./components/custom-sources-modal"
 
 interface SmartRule {
   id: string
@@ -24,17 +25,26 @@ interface SmartRule {
   }
 }
 
+interface CustomTrafficSource {
+  name: string
+  domains: string[]
+}
+
 interface SmartRulesPageClientProps {
   initialRules: SmartRule[]
+  initialCustomSources: CustomTrafficSource[]
   blocks: Array<{ id: string; title: string; url: string | null }>
 }
 
 export function SmartRulesPageClient({
   initialRules,
+  initialCustomSources,
   blocks,
 }: SmartRulesPageClientProps) {
   const [rules, setRules] = useState<SmartRule[]>(initialRules)
-  const [editingRule, setEditingRule] = useState<SmartRule | null>(null)
+  const [customSources, setCustomSources] = useState<CustomTrafficSource[]>(initialCustomSources)
+  const [editingRule, setEditingRule] = useState<SmartRule | null | undefined>(undefined)
+  const [showCustomSourcesModal, setShowCustomSourcesModal] = useState(false)
   const [loading, setLoading] = useState<string | null>(null)
 
   const refreshRules = async () => {
@@ -174,13 +184,22 @@ export function SmartRulesPageClient({
               Configurez des règles conditionnelles pour personnaliser l'affichage de vos blocs
             </p>
           </div>
-          <button
-            onClick={() => setEditingRule({} as SmartRule)}
-            className="flex items-center justify-center gap-2 rounded-md bg-black px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
-          >
-            <Plus className="h-4 w-4" />
-            Nouvelle règle
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowCustomSourcesModal(true)}
+              className="flex items-center justify-center gap-2 rounded-md border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-black transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:hover:bg-zinc-700"
+            >
+              <Settings className="h-4 w-4" />
+              Réseaux personnalisés
+            </button>
+            <button
+              onClick={() => setEditingRule(null as any)}
+              className="flex items-center justify-center gap-2 rounded-md bg-black px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
+            >
+              <Plus className="h-4 w-4" />
+              Nouvelle règle
+            </button>
+          </div>
         </div>
 
         {rules.length === 0 ? (
@@ -255,7 +274,7 @@ export function SmartRulesPageClient({
                       )}
                     </button>
                     <button
-                      onClick={() => setEditingRule(rule)}
+                      onClick={() => setEditingRule(rule as SmartRule | null)}
                       disabled={loading === rule.id}
                       className="rounded-md border border-zinc-300 px-3 py-1 text-sm font-medium text-black transition-colors hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-700 dark:text-white dark:hover:bg-zinc-800"
                     >
@@ -276,12 +295,36 @@ export function SmartRulesPageClient({
         )}
       </div>
 
-      {editingRule !== null && (
+      {editingRule !== undefined && (
         <SmartRuleForm
           rule={editingRule}
           blocks={blocks}
-          onClose={() => setEditingRule(null)}
-          onSuccess={refreshRules}
+          customTrafficSources={customSources}
+          onClose={() => setEditingRule(undefined)}
+          onSuccess={() => {
+            setEditingRule(undefined)
+            refreshRules()
+          }}
+        />
+      )}
+
+      {showCustomSourcesModal && (
+        <CustomSourcesModal
+          customSources={customSources}
+          onClose={() => setShowCustomSourcesModal(false)}
+          onSave={async (sources) => {
+            const response = await fetch("/api/user-page/custom-traffic-sources", {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ customSources: sources }),
+            })
+            if (response.ok) {
+              setCustomSources(sources)
+              setShowCustomSourcesModal(false)
+            } else {
+              alert("Erreur lors de la sauvegarde")
+            }
+          }}
         />
       )}
     </div>
