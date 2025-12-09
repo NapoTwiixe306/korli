@@ -40,24 +40,43 @@ export default async function SmartRulesPage() {
           order: "asc",
         },
       },
-    },
-  })
+    } as any,
+  }) as any
 
   if (!userPage) {
     redirect("/register")
   }
 
+  const mappedRules = ((userPage as any)?.smartRules || []).map((rule: any) => {
+    const conditions = (rule.conditions || {}) as {
+      trafficSource?: string[]
+      device?: string[]
+      country?: string[]
+      timeRange?: { start: string; end: string }
+      dayOfWeek?: number[]
+      visitorType?: "new" | "returning"
+    }
+    
+    const actions = (rule.actions || { type: "show" }) as {
+      type: "show" | "hide" | "reorder"
+      blockIds?: string[]
+      order?: (string | number)[]
+    }
+
+    return {
+      id: rule.id,
+      name: rule.name,
+      isActive: rule.isActive,
+      priority: rule.priority,
+      conditions,
+      actions,
+    }
+  })
+
   return (
     <SmartRulesPageClient
-      initialRules={userPage.smartRules as Array<{
-        id: string
-        name: string
-        isActive: boolean
-        priority: number
-        conditions: unknown
-        actions: unknown
-      }>}
-      blocks={userPage.blocks.map((b) => ({
+      initialRules={mappedRules}
+      blocks={(userPage.blocks || []).map((b: any) => ({
         id: b.id,
         title: b.title,
         url: b.url,

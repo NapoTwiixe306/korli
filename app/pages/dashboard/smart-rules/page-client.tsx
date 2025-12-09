@@ -20,7 +20,7 @@ interface SmartRule {
   actions: {
     type: "show" | "hide" | "reorder"
     blockIds?: string[]
-    order?: number[]
+    order?: (string | number)[]
   }
 }
 
