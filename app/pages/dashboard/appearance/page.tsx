@@ -62,6 +62,17 @@ export default async function AppearancePage() {
       avatar={userPage.avatar}
       userImage={userPage.user.image}
       blocks={userPage.blocks}
+      initialSocialHeaderEnabled={(userPage as unknown as { socialHeaderEnabled?: boolean }).socialHeaderEnabled ?? false}
+      initialSocialHeaderBlockIds={
+        Array.isArray((userPage as unknown as { socialHeaderBlockIds?: unknown }).socialHeaderBlockIds)
+          ? ((userPage as unknown as { socialHeaderBlockIds: string[] }).socialHeaderBlockIds)
+          : []
+      }
+      initialThemeConfig={
+        (userPage as unknown as { themeConfig?: unknown }).themeConfig
+          ? ((userPage as unknown as { themeConfig: Record<string, unknown> }).themeConfig)
+          : null
+      }
     />
   )
 }

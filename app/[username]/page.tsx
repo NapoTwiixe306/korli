@@ -56,13 +56,17 @@ export default async function UserPage({ params }: PageProps) {
         theme={userPage.theme as "default" | "minimal" | "dark" | "colorful"}
         layout={userPage.layout || "list"}
         animations={userPage.animations || "all"}
-        socialHeaderEnabled={(userPage as any).socialHeaderEnabled}
+        socialHeaderEnabled={(userPage as unknown as { socialHeaderEnabled?: boolean }).socialHeaderEnabled ?? false}
         socialHeaderBlockIds={
-          Array.isArray((userPage as any).socialHeaderBlockIds)
-            ? ((userPage as any).socialHeaderBlockIds as string[])
+          Array.isArray((userPage as unknown as { socialHeaderBlockIds?: unknown }).socialHeaderBlockIds)
+            ? ((userPage as unknown as { socialHeaderBlockIds: string[] }).socialHeaderBlockIds)
             : []
         }
-        themeConfig={((userPage as any).themeConfig as Record<string, unknown> | null) || null}
+        themeConfig={
+          (userPage as unknown as { themeConfig?: unknown }).themeConfig
+            ? ((userPage as unknown as { themeConfig: Record<string, unknown> }).themeConfig)
+            : null
+        }
       />
     </>
   )

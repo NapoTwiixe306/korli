@@ -71,20 +71,23 @@ model Verification {
 }
 
 model UserPage {
-  id         String      @id @default(cuid())
-  userId     String      @unique
-  username   String      @unique
-  bio        String?     @db.Text
-  avatar     String?
-  theme      String      @default("default")
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
-  layout     String      @default("list")
-  animations String      @default("all")
-  blocks     Block[]
-  pageViews  PageView[]
-  shortlinks Shortlink[]
-  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                   String      @id @default(cuid())
+  userId               String      @unique
+  username             String      @unique
+  bio                  String?     @db.Text
+  avatar               String?
+  theme                String      @default("default")
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
+  layout               String      @default("list")
+  animations           String      @default("all")
+  socialHeaderEnabled  Boolean     @default(false)
+  socialHeaderBlockIds Json?
+  themeConfig          Json?
+  blocks               Block[]
+  pageViews            PageView[]
+  shortlinks           Shortlink[]
+  user                 User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([username])
   @@index([userId])
