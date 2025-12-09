@@ -107,6 +107,7 @@ export function AppearancePageClient({
   const [currentAvatar, setCurrentAvatar] = useState(avatar)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [activeTab, setActiveTab] = useState<"general" | "social" | "theme">("general")
   const [previewTheme, setPreviewTheme] = useState(initialTheme)
   const [previewLayout, setPreviewLayout] = useState<LayoutType>(initialLayout as LayoutType)
   const [previewAnimations, setPreviewAnimations] = useState<AnimationLevel>(initialAnimations)
@@ -299,256 +300,281 @@ export function AppearancePageClient({
 
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2 space-y-4 sm:space-y-6">
-            {/* Réseaux en header */}
-            <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-lg font-semibold text-black dark:text-white">Réseaux sous le nom</h2>
-                  <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                    Choisissez d’afficher certaines icônes (blocs avec icône) sous votre nom.
-                  </p>
-                </div>
-                <label className="inline-flex cursor-pointer items-center gap-2">
-                  <span className="text-sm text-zinc-700 dark:text-zinc-300">Afficher</span>
-                  <input
-                    type="checkbox"
-                    className="h-4 w-4"
-                    checked={socialHeaderEnabled}
-                    onChange={(e) => setSocialHeaderEnabled(e.target.checked)}
-                  />
-                </label>
-              </div>
-
-              {socialHeaderEnabled && (
-                <div className="mt-4 space-y-3">
-                  <p className="text-sm text-zinc-600 dark:text-zinc-400">Sélectionnez les blocs à afficher (max 5 recommandés) :</p>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    {blocks
-                      .filter((b) => b.icon && b.icon.startsWith("icon:") && b.url)
-                      .map((b) => {
-                        const checked = socialHeaderBlockIds.includes(b.id)
-                        return (
-                          <label
-                            key={b.id}
-                            className={`flex items-center gap-3 rounded-md border p-3 text-sm transition ${
-                              checked
-                                ? "border-black dark:border-white"
-                                : "border-zinc-200 dark:border-zinc-700 hover:border-zinc-400 dark:hover:border-zinc-500"
-                            }`}
-                          >
-                            <input
-                              type="checkbox"
-                              checked={checked}
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  setSocialHeaderBlockIds([...socialHeaderBlockIds, b.id])
-                                } else {
-                                  setSocialHeaderBlockIds(socialHeaderBlockIds.filter((id) => id !== b.id))
-                                }
-                              }}
-                            />
-                            <div className="flex flex-col">
-                              <span className="font-medium text-black dark:text-white">{b.title}</span>
-                              <span className="text-xs text-zinc-500 dark:text-zinc-400 truncate">{b.url}</span>
-                            </div>
-                          </label>
-                        )
-                      })}
-                  </div>
-                  <button
-                    onClick={handleSocialHeaderSave}
-                    disabled={saving}
-                    className="rounded-md bg-black px-4 py-2 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:opacity-50 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
-                  >
-                    Enregistrer
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Layout Selection */}
-            <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-              <h2 className="mb-4 text-lg font-semibold text-black dark:text-white">
-                Disposition
-              </h2>
-              <LayoutSelector
-                currentLayout={layout}
-                onLayoutChange={handleLayoutChange}
-                saving={saving}
-              />
-            </div>
-
-            {/* Animations Selection */}
-            <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-              <h2 className="mb-4 text-lg font-semibold text-black dark:text-white">
-                Animations
-              </h2>
-              <AnimationsSelector
-                currentAnimations={animations}
-                onAnimationsChange={handleAnimationsChange}
-                saving={saving}
-              />
-            </div>
-
-            {/* Theme Selection */}
-            <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-              <h2 className="mb-4 text-lg font-semibold text-black dark:text-white">
-                Thème
-              </h2>
-              <div className="grid gap-4 sm:grid-cols-2">
-                {["default", "minimal", "dark", "colorful"].map((themeOption) => (
-                  <button
-                    key={themeOption}
-                    onClick={() => handleThemeChange(themeOption)}
-                    disabled={saving}
-                    className={`rounded-lg border-2 p-4 text-left transition-colors ${
-                      theme === themeOption
-                        ? "border-black dark:border-white"
-                        : "border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-600"
-                    } disabled:opacity-50`}
-                  >
-                    <div className="font-medium text-black dark:text-white capitalize">
-                      {themeOption}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Avatar */}
-            <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-              <h2 className="mb-4 text-lg font-semibold text-black dark:text-white">
-                Avatar
-              </h2>
-              <AvatarUpload
-                currentAvatar={currentAvatar}
-                currentUserImage={userImage}
-                onAvatarChange={(newAvatar) => {
-                  setCurrentAvatar(newAvatar)
-                  setPreviewAvatar(newAvatar)
-                  router.refresh()
-                }}
-              />
-            </div>
-
-            {/* Bio */}
-            <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-              <h2 className="mb-4 text-lg font-semibold text-black dark:text-white">
-                Bio
-              </h2>
-              <textarea
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-                rows={4}
-                className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-black shadow-sm focus:border-zinc-500 focus:outline-none focus:ring-zinc-500 dark:border-zinc-600 dark:bg-zinc-800 dark:text-white"
-                placeholder="Décrivez-vous en quelques mots..."
-                onBlur={() => setPreviewBio(bio)}
-              />
-              <button
-                onClick={handleBioSave}
-                disabled={saving || bio === (initialBio || "")}
-                className="mt-3 rounded-md bg-black px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:opacity-50 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
-              >
-                {saving ? "Enregistrement..." : "Enregistrer la bio"}
-              </button>
-            </div>
-
-            {/* Thème avancé */}
-            <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <h2 className="mb-1 text-lg font-semibold text-black dark:text-white">
-                    Thème avancé (couleurs / arrondis)
-                  </h2>
-                  <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                    Choisissez un preset, ajustez ensuite les couleurs clés et le radius.
-                  </p>
-                </div>
-              </div>
-              <div className="mb-4 flex flex-wrap gap-2">
-                {Object.entries(themePresets).map(([key, preset]) => (
-                  <button
-                    key={key}
-                    onClick={() => setThemeConfig(preset)}
-                    className="rounded-md border border-zinc-200 px-3 py-1 text-sm text-black hover:bg-zinc-100 dark:border-zinc-700 dark:text-white dark:hover:bg-zinc-800"
-                  >
-                    Préset {key}
-                  </button>
-                ))}
+            <div className="flex flex-wrap gap-2 rounded-lg border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900">
+              {[
+                { key: "general", label: "Général" },
+                { key: "social", label: "Réseaux" },
+                { key: "theme", label: "Thème" },
+              ].map((tab) => (
                 <button
-                  onClick={() =>
-                    setThemeConfig({
-                      backgroundColor: "#ffffff",
-                      textPrimary: "#111111",
-                      textSecondary: "#4b5563",
-                      cardBackground: "#ffffff",
-                      borderColor: "#e5e7eb",
-                      iconBackground: "#111111",
-                      iconHoverBackground: "#1f2937",
-                      iconRadius: 9999,
-                    })
-                  }
-                  className="rounded-md border border-zinc-200 px-3 py-1 text-sm text-black hover:bg-zinc-100 dark:border-zinc-700 dark:text-white dark:hover:bg-zinc-800"
+                  key={tab.key}
+                  onClick={() => setActiveTab(tab.key as typeof activeTab)}
+                  className={`rounded-md px-3 py-2 text-sm font-semibold transition ${
+                    activeTab === tab.key
+                      ? "bg-black text-white dark:bg-white dark:text-black"
+                      : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
+                  }`}
                 >
-                  Réinitialiser
+                  {tab.label}
                 </button>
+              ))}
+            </div>
+
+            {activeTab === "social" && (
+              <div className="space-y-4 sm:space-y-6">
+                <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="text-lg font-semibold text-black dark:text-white">Réseaux sous le nom</h2>
+                      <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                        Choisissez d’afficher certaines icônes (blocs avec icône) sous votre nom.
+                      </p>
+                    </div>
+                    <label className="inline-flex cursor-pointer items-center gap-2">
+                      <span className="text-sm text-zinc-700 dark:text-zinc-300">Afficher</span>
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4"
+                        checked={socialHeaderEnabled}
+                        onChange={(e) => setSocialHeaderEnabled(e.target.checked)}
+                      />
+                    </label>
+                  </div>
+
+                  {socialHeaderEnabled && (
+                    <div className="mt-4 space-y-3">
+                      <p className="text-sm text-zinc-600 dark:text-zinc-400">Sélectionnez les blocs à afficher (max 5 recommandés) :</p>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        {blocks
+                          .filter((b) => b.icon && b.icon.startsWith("icon:") && b.url)
+                          .map((b) => {
+                            const checked = socialHeaderBlockIds.includes(b.id)
+                            return (
+                              <label
+                                key={b.id}
+                                className={`flex items-center gap-3 rounded-md border p-3 text-sm transition ${
+                                  checked
+                                    ? "border-black dark:border-white"
+                                    : "border-zinc-200 dark:border-zinc-700 hover:border-zinc-400 dark:hover:border-zinc-500"
+                                }`}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={checked}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      setSocialHeaderBlockIds([...socialHeaderBlockIds, b.id])
+                                    } else {
+                                      setSocialHeaderBlockIds(socialHeaderBlockIds.filter((id) => id !== b.id))
+                                    }
+                                  }}
+                                />
+                                <div className="flex flex-col">
+                                  <span className="font-medium text-black dark:text-white">{b.title}</span>
+                                  <span className="text-xs text-zinc-500 dark:text-zinc-400 truncate">{b.url}</span>
+                                </div>
+                              </label>
+                            )
+                          })}
+                      </div>
+                      <button
+                        onClick={handleSocialHeaderSave}
+                        disabled={saving}
+                        className="rounded-md bg-black px-4 py-2 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:opacity-50 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
+                      >
+                        Enregistrer
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                {[
-                  { key: "backgroundColor", label: "Fond de page" },
-                  { key: "textPrimary", label: "Texte principal" },
-                  { key: "textSecondary", label: "Texte secondaire" },
-                  { key: "cardBackground", label: "Fond des cartes" },
-                  { key: "borderColor", label: "Couleur des bordures" },
-                  { key: "iconBackground", label: "Fond icônes header" },
-                  { key: "iconHoverBackground", label: "Fond icônes (hover)" },
-                  { key: "usernameColor", label: "Couleur du nom" },
-                ].map((item) => (
-                  <label key={item.key} className="flex items-center justify-between gap-3 text-sm text-black dark:text-white">
-                    <span>{item.label}</span>
-                    <input
-                      type="color"
-                      value={(themeConfig[item.key] as string) || "#ffffff"}
-                      onChange={(e) =>
+            )}
+
+            {activeTab === "general" && (
+              <div className="space-y-4 sm:space-y-6">
+                <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+                  <h2 className="mb-4 text-lg font-semibold text-black dark:text-white">
+                    Disposition
+                  </h2>
+                  <LayoutSelector
+                    currentLayout={layout}
+                    onLayoutChange={handleLayoutChange}
+                    saving={saving}
+                  />
+                </div>
+
+                <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+                  <h2 className="mb-4 text-lg font-semibold text-black dark:text-white">
+                    Animations
+                  </h2>
+                  <AnimationsSelector
+                    currentAnimations={animations}
+                    onAnimationsChange={handleAnimationsChange}
+                    saving={saving}
+                  />
+                </div>
+
+                <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+                  <h2 className="mb-4 text-lg font-semibold text-black dark:text-white">
+                    Avatar
+                  </h2>
+                  <AvatarUpload
+                    currentAvatar={currentAvatar}
+                    currentUserImage={userImage}
+                    onAvatarChange={(newAvatar) => {
+                      setCurrentAvatar(newAvatar)
+                      setPreviewAvatar(newAvatar)
+                      router.refresh()
+                    }}
+                  />
+                </div>
+
+                <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+                  <h2 className="mb-4 text-lg font-semibold text-black dark:text-white">
+                    Bio
+                  </h2>
+                  <textarea
+                    value={bio}
+                    onChange={(e) => setBio(e.target.value)}
+                    rows={4}
+                    className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-black shadow-sm focus:border-zinc-500 focus:outline-none focus:ring-zinc-500 dark:border-zinc-600 dark:bg-zinc-800 dark:text-white"
+                    placeholder="Décrivez-vous en quelques mots..."
+                    onBlur={() => setPreviewBio(bio)}
+                  />
+                  <button
+                    onClick={handleBioSave}
+                    disabled={saving || bio === (initialBio || "")}
+                    className="mt-3 rounded-md bg-black px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:opacity-50 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
+                  >
+                    {saving ? "Enregistrement..." : "Enregistrer la bio"}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "theme" && (
+              <div className="space-y-4 sm:space-y-6">
+                <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+                  <h2 className="mb-4 text-lg font-semibold text-black dark:text-white">
+                    Thème
+                  </h2>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    {["default", "minimal", "dark", "colorful"].map((themeOption) => (
+                      <button
+                        key={themeOption}
+                        onClick={() => handleThemeChange(themeOption)}
+                        disabled={saving}
+                        className={`rounded-lg border-2 p-4 text-left transition-colors ${
+                          theme === themeOption
+                            ? "border-black dark:border-white"
+                            : "border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-600"
+                        } disabled:opacity-50`}
+                      >
+                        <div className="font-medium text-black dark:text-white capitalize">
+                          {themeOption}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <h2 className="mb-1 text-lg font-semibold text-black dark:text-white">
+                        Thème avancé (couleurs / arrondis)
+                      </h2>
+                      <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                        Choisissez un preset, ajustez ensuite les couleurs clés et le radius.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mb-4 flex flex-wrap gap-2">
+                    {Object.entries(themePresets).map(([key, preset]) => (
+                      <button
+                        key={key}
+                        onClick={() => setThemeConfig(preset)}
+                        className="rounded-md border border-zinc-200 px-3 py-1 text-sm text-black hover:bg-zinc-100 dark:border-zinc-700 dark:text-white dark:hover:bg-zinc-800"
+                      >
+                        Préset {key}
+                      </button>
+                    ))}
+                    <button
+                      onClick={() =>
                         setThemeConfig({
-                          ...themeConfig,
-                          [item.key]: e.target.value,
+                          backgroundColor: "#ffffff",
+                          textPrimary: "#111111",
+                          textSecondary: "#4b5563",
+                          cardBackground: "#ffffff",
+                          borderColor: "#e5e7eb",
+                          iconBackground: "#ffffff",
+                          iconHoverBackground: "#f1f5f9",
+                          usernameColor: "#111111",
+                          iconRadius: 9999,
                         })
                       }
-                      className="h-9 w-16 cursor-pointer rounded border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900"
-                    />
-                  </label>
-                ))}
-                <label className="flex items-center justify-between gap-3 text-sm text-black dark:text-white">
-                  <span>Radius icônes</span>
-                  <input
-                    type="number"
-                    min={0}
-                    max={9999}
-                    value={(themeConfig.iconRadius as number) ?? 9999}
-                    onChange={(e) =>
-                      setThemeConfig({
-                        ...themeConfig,
-                        iconRadius: Number(e.target.value),
-                      })
-                    }
-                    className="w-24 rounded border border-zinc-200 bg-white px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
-                  />
-                </label>
+                      className="rounded-md border border-zinc-200 px-3 py-1 text-sm text-black hover:bg-zinc-100 dark:border-zinc-700 dark:text-white dark:hover:bg-zinc-800"
+                    >
+                      Réinitialiser
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    {[
+                      { key: "backgroundColor", label: "Fond de page" },
+                      { key: "textPrimary", label: "Texte principal" },
+                      { key: "textSecondary", label: "Texte secondaire" },
+                      { key: "cardBackground", label: "Fond des cartes" },
+                      { key: "borderColor", label: "Couleur des bordures" },
+                      { key: "iconBackground", label: "Fond icônes header" },
+                      { key: "iconHoverBackground", label: "Fond icônes (hover)" },
+                      { key: "usernameColor", label: "Couleur du nom" },
+                    ].map((item) => (
+                      <label key={item.key} className="flex items-center justify-between gap-3 text-sm text-black dark:text-white">
+                        <span>{item.label}</span>
+                        <input
+                          type="color"
+                          value={(themeConfig[item.key] as string) || "#ffffff"}
+                          onChange={(e) =>
+                            setThemeConfig({
+                              ...themeConfig,
+                              [item.key]: e.target.value,
+                            })
+                          }
+                          className="h-9 w-16 cursor-pointer rounded border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900"
+                        />
+                      </label>
+                    ))}
+                    <label className="flex items-center justify-between gap-3 text-sm text-black dark:text-white">
+                      <span>Radius icônes</span>
+                      <input
+                        type="number"
+                        min={0}
+                        max={9999}
+                        value={(themeConfig.iconRadius as number) ?? 9999}
+                        onChange={(e) =>
+                          setThemeConfig({
+                            ...themeConfig,
+                            iconRadius: Number(e.target.value),
+                          })
+                        }
+                        className="w-24 rounded border border-zinc-200 bg-white px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
+                      />
+                    </label>
+                  </div>
+                  <div className="mt-4 flex justify-end">
+                    <button
+                      onClick={handleThemeConfigSave}
+                      disabled={saving}
+                      className="rounded-md bg-black px-4 py-2 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:opacity-50 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
+                    >
+                      Enregistrer
+                    </button>
+                  </div>
+                </div>
               </div>
-              <div className="mt-4 flex justify-end">
-                <button
-                  onClick={handleThemeConfigSave}
-                  disabled={saving}
-                  className="rounded-md bg-black px-4 py-2 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:opacity-50 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
-                >
-                  Enregistrer
-                </button>
-              </div>
-            </div>
+            )}
           </div>
 
-          {/* Preview */}
           <div className="lg:col-span-1">
             <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
               <h2 className="mb-4 text-lg font-semibold text-black dark:text-white">
@@ -563,7 +589,6 @@ export function AppearancePageClient({
                 blocks={blocks
                   .map((b) => ({
                     ...b,
-                    // hide header socials in preview list if selected
                     isHidden:
                       previewSocialEnabled &&
                       previewSocialIds.includes(b.id) &&

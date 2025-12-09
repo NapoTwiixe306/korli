@@ -39,7 +39,10 @@ export default async function DashboardLayout({
 
       <div className="flex flex-1 flex-col">
         {/* User info and sign out - Desktop */}
-        <div className="hidden border-b border-zinc-200 bg-white px-6 py-4 dark:border-zinc-800 dark:bg-zinc-900 lg:flex lg:justify-end">
+        <div className="hidden items-center justify-between border-b border-zinc-200 bg-white px-6 py-4 dark:border-zinc-800 dark:bg-zinc-900 lg:flex">
+          <Link href="/pages/dashboard" className="text-lg font-bold text-black dark:text-white">
+            korli
+          </Link>
           <div className="flex items-center gap-4">
             <div className="text-right">
               <div className="text-sm font-medium text-black dark:text-white">
