@@ -188,28 +188,53 @@ Rules that modify which blocks appear to which visitors.
 
 ### Free
 
-- 15 blocks
-- Basic themes
-- Basic analytics
+- 1 page
+- 20 blocks
+- Shortlinks illimités
+- Analytics avancés gratuits (ton différenciateur)
+- Smart Rules basiques (3 règles actives)
+  - Conditions simples : Traffic source OU Device OU Country
+  - Actions : Show/Hide blocks
+  - Pas de conditions multiples complexes
+  - Pas de time-based rules
+- Templates basiques
+- QR codes
+- Lien korli.fr/username
 - Light branding
-- No smart rules
 
-### Pro (5€/month)
+### Premium (7–9€/month)
 
-- Unlimited blocks
-- Advanced themes
-- Basic smart rules
-- Analytics advanced
-- Remove branding
+- Tout du Free
+- Pages illimitées (ou 3–5 pages)
+- Blocks illimités
+- Smart Rules avancées (5–10 règles actives)
+  - Conditions multiples : Traffic source ET Device ET Country
+  - Time-based rules (heure, jour de la semaine)
+  - Visitor type (new vs returning)
+  - Réordonnancement automatique
+- Thèmes premium + animations
+- Embeds (YouTube, Spotify, X posts)
+- Suppression du branding
+- Shortlinks custom (alias personnalisés)
+- Support email
 
-### Pro+ (12€–17€/month)
+### Pro (15€/month)
 
-- All smart rules
-- A/B testing
+- Tout du Premium
+- Smart Rules illimitées
+- A/B testing sur les blocks
 - Custom domain
-- Shortlinks advanced
-- Shop access
-- Automations (later)
+- Analytics exports (CSV/PDF)
+- Pages multiples (3–5)
+- Support prioritaire
+
+### Pro+ (25€/month) — V2 Features
+
+- Tout du Pro
+- Shop access (V2)
+- Automatisations avancées (V3)
+- Multi-brands (3–5 brands)
+- API access (V3)
 
 ---
 

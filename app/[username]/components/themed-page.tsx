@@ -208,16 +208,62 @@ export function ThemedPage({
         )
       : blocks
 
+  // Valeurs par défaut selon le thème
+  const getDefaultThemeOverrides = () => {
+    switch (theme) {
+      case "dark":
+        return {
+          backgroundColor: "#000000",
+          textPrimary: "#ffffff",
+          textSecondary: "#a1a1aa",
+          cardBackground: "#18181b",
+          borderColor: "#27272a",
+          iconBackground: "#18181b",
+          iconHoverBackground: "#27272a",
+          usernameColor: "#ffffff",
+          iconRadius: 9999,
+        }
+      case "minimal":
+        return {
+          backgroundColor: "#ffffff",
+          textPrimary: "#111111",
+          textSecondary: "#71717a",
+          cardBackground: "#ffffff",
+          borderColor: "#f4f4f5",
+          iconBackground: "#ffffff",
+          iconHoverBackground: "#fafafa",
+          usernameColor: "#111111",
+          iconRadius: 9999,
+        }
+      case "colorful":
+        return {
+          backgroundColor: "#faf5ff",
+          textPrimary: "#1e1b4b",
+          textSecondary: "#6b7280",
+          cardBackground: "#ffffff",
+          borderColor: "#e9d5ff",
+          iconBackground: "#ffffff",
+          iconHoverBackground: "#f3e8ff",
+          usernameColor: "#1e1b4b",
+          iconRadius: 9999,
+        }
+      default:
+        return {
+          backgroundColor: "#ffffff",
+          textPrimary: "#111111",
+          textSecondary: "#4b5563",
+          cardBackground: "#ffffff",
+          borderColor: "#e5e7eb",
+          iconBackground: "#ffffff",
+          iconHoverBackground: "#f1f5f9",
+          usernameColor: "#111111",
+          iconRadius: 9999,
+        }
+    }
+  }
+
   const themeOverrides = {
-    backgroundColor: "#ffffff",
-    textPrimary: "#111111",
-    textSecondary: "#4b5563",
-    cardBackground: "#ffffff",
-    borderColor: "#e5e7eb",
-    iconBackground: "#ffffff",
-    iconHoverBackground: "#f1f5f9",
-    usernameColor: "#111111",
-    iconRadius: 9999,
+    ...getDefaultThemeOverrides(),
     ...(themeConfig as Record<string, unknown> | null),
   } as {
     backgroundColor: string
@@ -337,7 +383,46 @@ export function ThemedPage({
           Créé avec{" "}
           <Link
             href="/"
-            className={`font-medium ${styles.textPrimary} hover:underline`}
+            className="font-medium hover:underline"
+            style={{
+              color: (() => {
+                // Fonction helper pour calculer la luminosité d'une couleur
+                const getLuminance = (color: string): number => {
+                  // Gérer les formats hex (#ffffff, ffffff)
+                  if (color.startsWith('#')) {
+                    const hex = color.replace('#', '')
+                    if (hex.length === 6) {
+                      const r = parseInt(hex.substring(0, 2), 16)
+                      const g = parseInt(hex.substring(2, 4), 16)
+                      const b = parseInt(hex.substring(4, 6), 16)
+                      return (0.299 * r + 0.587 * g + 0.114 * b) / 255
+                    }
+                  }
+                  // Gérer rgb/rgba
+                  const rgbMatch = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/)
+                  if (rgbMatch) {
+                    const r = parseInt(rgbMatch[1])
+                    const g = parseInt(rgbMatch[2])
+                    const b = parseInt(rgbMatch[3])
+                    return (0.299 * r + 0.587 * g + 0.114 * b) / 255
+                  }
+                  return 0.5 // Par défaut, considérer comme moyen
+                }
+
+                // Obtenir la couleur de fond réelle
+                const bgColor = themeOverrides.backgroundColor
+
+                // Pour le thème colorful, utiliser une couleur de marque
+                if (theme === "colorful") {
+                  return "#9333ea" // purple-600 pour un bon contraste
+                }
+
+                // Pour tous les autres cas, calculer en fonction de la luminosité du fond
+                const luminance = getLuminance(bgColor)
+                // Si le fond est sombre (luminance < 0.5), utiliser blanc, sinon noir
+                return luminance < 0.5 ? "#ffffff" : "#111111"
+              })(),
+            }}
           >
             korli
           </Link>

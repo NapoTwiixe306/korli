@@ -17,6 +17,7 @@ import {
   Eye,
   Target,
 } from "lucide-react"
+import { DemoSection } from "./demo-section"
 
 export function LandingSections() {
   return (
@@ -56,6 +57,9 @@ export function LandingSections() {
           </div>
         </div>
       </section>
+
+      {/* Demo Section */}
+      <DemoSection />
 
       {/* Features Section */}
       <section id="features" className="bg-zinc-50 py-20 sm:py-32 dark:bg-zinc-950 transition-colors duration-300">
