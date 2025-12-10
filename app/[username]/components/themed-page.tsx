@@ -262,9 +262,19 @@ export function ThemedPage({
     }
   }
 
+  // Toujours utiliser les valeurs par défaut du thème comme base
+  const defaultOverrides = getDefaultThemeOverrides()
+  
+  // Si themeConfig existe, l'utiliser pour personnaliser, mais garder les valeurs par défaut si une propriété n'est pas définie
   const themeOverrides = {
-    ...getDefaultThemeOverrides(),
-    ...(themeConfig as Record<string, unknown> | null),
+    ...defaultOverrides,
+    ...(themeConfig && typeof themeConfig === 'object' && themeConfig !== null
+      ? Object.fromEntries(
+          Object.entries(themeConfig).filter(([key]) => 
+            key in defaultOverrides
+          )
+        )
+      : {}),
   } as {
     backgroundColor: string
     textPrimary: string
@@ -276,18 +286,43 @@ export function ThemedPage({
     usernameColor: string
     iconRadius: number
   }
-  // Garantit le fond des icônes header en blanc si non défini
+  
+  // Garantit que toutes les propriétés ont une valeur
   if (!themeOverrides.iconBackground) {
-    themeOverrides.iconBackground = "#ffffff"
+    themeOverrides.iconBackground = defaultOverrides.iconBackground
   }
+
+  // Pour le thème colorful, utiliser les classes CSS Tailwind qui gèrent le dark mode
+  const getBackgroundStyle = () => {
+    if (theme === "colorful") {
+      // Pour colorful, on utilise les classes CSS, pas de style inline pour le background
+      return {
+        color: themeOverrides.textPrimary,
+        minHeight: "100vh",
+        width: "100%",
+      }
+    }
+    return {
+      backgroundColor: themeOverrides.backgroundColor,
+      color: themeOverrides.textPrimary,
+      minHeight: "100vh",
+      width: "100%",
+    }
+  }
+
+  // Classes CSS pour le thème colorful (gère automatiquement le dark mode)
+  const colorfulBackgroundClass = theme === "colorful" 
+    ? "bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 dark:from-purple-950 dark:via-pink-950 dark:to-orange-950"
+    : ""
 
   return (
     <div
-      className={`flex min-h-screen items-center justify-center px-4 py-8 sm:py-12 ${animClasses.pageTransition}`}
-      style={{
-        backgroundColor: themeOverrides.backgroundColor,
+      className={`flex min-h-screen items-center justify-center px-4 py-8 sm:py-12 ${animClasses.pageTransition} ${colorfulBackgroundClass}`}
+      style={theme === "colorful" ? {
         color: themeOverrides.textPrimary,
-      }}
+        minHeight: "100vh",
+        width: "100%",
+      } : getBackgroundStyle()}
     >
       <div className={`w-full ${maxWidth} space-y-6 sm:space-y-8`}>
         {/* Avatar & Bio */}

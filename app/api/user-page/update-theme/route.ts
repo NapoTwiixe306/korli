@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { Prisma } from "@prisma/client"
 import { NextRequest, NextResponse } from "next/server"
 import { headers } from "next/headers"
 
@@ -43,7 +44,11 @@ export async function PATCH(request: NextRequest) {
 
     const userPage = await prisma.userPage.update({
       where: { userId: session.user.id },
-      data: { theme },
+      data: { 
+        theme,
+        // Réinitialiser themeConfig quand on change de thème pour appliquer les valeurs par défaut
+        themeConfig: Prisma.DbNull,
+      } as any,
     })
 
     return NextResponse.json({ userPage })
