@@ -13,11 +13,24 @@ interface Block {
   order: number
 }
 
+interface ThemeOverrides {
+  backgroundColor: string
+  textPrimary: string
+  textSecondary: string
+  cardBackground: string
+  borderColor: string
+  iconBackground: string
+  iconHoverBackground: string
+  usernameColor: string
+  iconRadius: number
+}
+
 interface BlocksGridProps {
   blocks: Block[]
   layout: LayoutType
   theme: Theme
   styles: ReturnType<typeof getThemeClasses>
+  themeOverrides?: ThemeOverrides
   animations?: AnimationLevel
   onBlockClick?: (blockId: string) => void
 }
@@ -27,13 +40,21 @@ export function BlocksGrid({
   layout,
   theme,
   styles,
+  themeOverrides,
   animations = "all",
   onBlockClick,
 }: BlocksGridProps) {
   const animClasses = getAnimationClasses(animations)
   if (blocks.length === 0) {
     return (
-      <div className={`rounded-lg border ${styles.border} ${styles.cardBackground} p-6 text-center ${styles.textSecondary}`}>
+      <div 
+        className={`rounded-lg border ${styles.border} ${styles.cardBackground} p-6 text-center ${styles.textSecondary}`}
+        style={{
+          backgroundColor: themeOverrides?.cardBackground,
+          borderColor: themeOverrides?.borderColor,
+          color: themeOverrides?.textSecondary,
+        }}
+      >
         <p className="text-sm sm:text-base">
           Aucun lien disponible pour le moment
         </p>
@@ -60,14 +81,17 @@ export function BlocksGrid({
                 ? "bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/50 dark:to-pink-900/50 hover:from-purple-100 hover:to-pink-100 dark:hover:from-purple-800/50 dark:hover:to-pink-800/50"
                 : `${styles.buttonHoverBg}`
             }`}
-            style={
-              animations === "all"
+            style={{
+              backgroundColor: theme === "colorful" ? undefined : themeOverrides?.cardBackground,
+              borderColor: themeOverrides?.borderColor,
+              color: themeOverrides?.textPrimary,
+              ...(animations === "all"
                 ? {
                     animationDelay: `${index * 0.05}s`,
                     animation: "slide-up 0.4s ease-out both",
                   }
-                : undefined
-            }
+                : {}),
+            }}
           >
             <BlockIcon icon={block.icon} className="text-lg" animations={animations} />
             <span>{block.title}</span>
@@ -107,6 +131,9 @@ export function BlocksGrid({
                 : `${styles.buttonHoverBg}`
             }`}
             style={{
+              backgroundColor: theme === "colorful" ? undefined : themeOverrides?.cardBackground,
+              borderColor: themeOverrides?.borderColor,
+              color: themeOverrides?.textPrimary,
               gridColumn: `span ${colSpan}`,
               gridRow: `span ${rowSpan}`,
               ...(animations === "all"

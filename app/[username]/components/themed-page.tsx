@@ -283,7 +283,7 @@ export function ThemedPage({
 
   return (
     <div
-      className={`flex min-h-screen items-center justify-center px-4 py-8 sm:py-12 ${styles.background} ${animClasses.pageTransition}`}
+      className={`flex min-h-screen items-center justify-center px-4 py-8 sm:py-12 ${animClasses.pageTransition}`}
       style={{
         backgroundColor: themeOverrides.backgroundColor,
         color: themeOverrides.textPrimary,
@@ -366,6 +366,7 @@ export function ThemedPage({
           layout={layoutType}
           theme={theme}
           styles={styles}
+          themeOverrides={themeOverrides}
           animations={animations as "all" | "minimal" | "none"}
           onBlockClick={async (blockId) => {
             fetch("/api/analytics/block-click", {
