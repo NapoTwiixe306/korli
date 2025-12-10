@@ -4,12 +4,14 @@ import { getLayoutConfig, type LayoutType } from "@/lib/layouts"
 import { getThemeClasses, type Theme } from "@/lib/themes"
 import { getAnimationClasses, type AnimationLevel } from "@/lib/animations"
 import { BlockIcon } from "./block-icon"
+import { LocationBlock } from "./location-block"
 
 interface Block {
   id: string
   title: string
   url: string | null
   icon: string | null
+  type?: string | null
   order: number
 }
 
@@ -69,34 +71,60 @@ export function BlocksGrid({
   if (layout === "list") {
     return (
       <div className="space-y-3">
-        {blocks.map((block, index) => (
-          <a
-            key={block.id}
-            href={block.url || "#"}
-            target={block.url?.startsWith("http") ? "_blank" : undefined}
-            rel={block.url?.startsWith("http") ? "noopener noreferrer" : undefined}
-            onClick={() => onBlockClick?.(block.id)}
-            className={`flex items-center justify-center gap-2 rounded-lg border ${styles.border} ${styles.cardBackground} p-3 sm:p-4 font-medium ${styles.textPrimary} ${animClasses.blockTransition} ${animClasses.blockTransform} ${animClasses.blockHover} ${
-              theme === "colorful"
-                ? "bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/50 dark:to-pink-900/50 hover:from-purple-100 hover:to-pink-100 dark:hover:from-purple-800/50 dark:hover:to-pink-800/50"
-                : `${styles.buttonHoverBg}`
-            }`}
-            style={{
-              backgroundColor: theme === "colorful" ? undefined : themeOverrides?.cardBackground,
-              borderColor: themeOverrides?.borderColor,
-              color: themeOverrides?.textPrimary,
-              ...(animations === "all"
-                ? {
-                    animationDelay: `${index * 0.05}s`,
-                    animation: "slide-up 0.4s ease-out both",
-                  }
-                : {}),
-            }}
-          >
-            <BlockIcon icon={block.icon} className="text-lg" animations={animations} />
-            <span>{block.title}</span>
-          </a>
-        ))}
+        {blocks.map((block, index) => {
+        // Si c'est un bloc de géolocalisation, utiliser le composant spécial
+        if (block.type === "location") {
+          return (
+            <div
+              key={block.id}
+              style={{
+                ...(animations === "all"
+                  ? {
+                      animationDelay: `${index * 0.05}s`,
+                      animation: "slide-up 0.4s ease-out both",
+                    }
+                    : {}),
+              }}
+            >
+              <LocationBlock
+                title={block.title}
+                url={block.url}
+                themeOverrides={themeOverrides}
+                onBlockClick={() => onBlockClick?.(block.id)}
+              />
+            </div>
+          )
+        }
+
+          return (
+            <a
+              key={block.id}
+              href={block.url || "#"}
+              target={block.url?.startsWith("http") ? "_blank" : undefined}
+              rel={block.url?.startsWith("http") ? "noopener noreferrer" : undefined}
+              onClick={() => onBlockClick?.(block.id)}
+              className={`flex items-center justify-center gap-2 rounded-lg border ${styles.border} ${styles.cardBackground} p-3 sm:p-4 font-medium ${styles.textPrimary} ${animClasses.blockTransition} ${animClasses.blockTransform} ${animClasses.blockHover} ${
+                theme === "colorful"
+                  ? "bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/50 dark:to-pink-900/50 hover:from-purple-100 hover:to-pink-100 dark:hover:from-purple-800/50 dark:hover:to-pink-800/50"
+                  : `${styles.buttonHoverBg}`
+              }`}
+              style={{
+                backgroundColor: theme === "colorful" ? undefined : themeOverrides?.cardBackground,
+                borderColor: themeOverrides?.borderColor,
+                color: themeOverrides?.textPrimary,
+                ...(animations === "all"
+                  ? {
+                      animationDelay: `${index * 0.05}s`,
+                      animation: "slide-up 0.4s ease-out both",
+                    }
+                  : {}),
+              }}
+            >
+              <BlockIcon icon={block.icon} className="text-lg" animations={animations} />
+              <span>{block.title}</span>
+            </a>
+          )
+        })}
       </div>
     )
   }
@@ -117,6 +145,32 @@ export function BlocksGrid({
         const span = config.blockSpans?.[index]
         const colSpan = span?.colSpan || 1
         const rowSpan = span?.rowSpan || 1
+
+        // Si c'est un bloc de géolocalisation, utiliser le composant spécial
+        if (block.type === "location") {
+          return (
+            <div
+              key={block.id}
+              style={{
+                gridColumn: `span ${colSpan}`,
+                gridRow: `span ${Math.max(rowSpan, 2)}`, // Les maps prennent plus de place
+                ...(animations === "all"
+                  ? {
+                      animationDelay: `${index * 0.05}s`,
+                      animation: "scale-in 0.3s ease-out both",
+                    }
+                  : {}),
+              }}
+            >
+              <LocationBlock
+                title={block.title}
+                url={block.url}
+                themeOverrides={themeOverrides}
+                onBlockClick={() => onBlockClick?.(block.id)}
+              />
+            </div>
+          )
+        }
 
         return (
           <a

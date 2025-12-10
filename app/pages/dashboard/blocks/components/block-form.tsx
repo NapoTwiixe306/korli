@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { X } from "lucide-react"
 import { SOCIAL_ICONS_LIST } from "@/lib/social-icons"
+import { LocationPicker } from "./location-picker"
 
 interface BlockFormData {
   title: string
@@ -37,6 +38,13 @@ export function BlockForm({ block, onClose, onSuccess }: BlockFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
+    
+    // Validation pour les blocs de localisation
+    if (formData.type === "location" && !formData.url) {
+      setError("Veuillez sélectionner une localisation sur la carte ou rechercher une adresse")
+      return
+    }
+
     setLoading(true)
 
     try {
@@ -73,7 +81,9 @@ export function BlockForm({ block, onClose, onSuccess }: BlockFormProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 overflow-y-auto">
-      <div className="w-full max-w-md rounded-lg border border-zinc-200 bg-white p-4 sm:p-6 dark:border-zinc-800 dark:bg-zinc-900 my-auto">
+      <div className={`w-full rounded-lg border border-zinc-200 bg-white p-4 sm:p-6 dark:border-zinc-800 dark:bg-zinc-900 my-auto ${
+        formData.type === "location" ? "max-w-2xl" : "max-w-md"
+      }`}>
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-xl font-semibold text-black dark:text-white">
             {block ? "Modifier le bloc" : "Nouveau bloc"}
@@ -109,21 +119,35 @@ export function BlockForm({ block, onClose, onSuccess }: BlockFormProps) {
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-              URL *
-            </label>
-            <input
-              type="url"
-              required
-              value={formData.url}
-              onChange={(e) =>
-                setFormData({ ...formData, url: e.target.value })
-              }
-              className="mt-1 block w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-black shadow-sm focus:border-zinc-500 focus:outline-none focus:ring-zinc-500 dark:border-zinc-600 dark:bg-zinc-800 dark:text-white"
-              placeholder="https://example.com"
+          {formData.type === "location" ? (
+            <LocationPicker
+              initialUrl={formData.url || null}
+              initialTitle={formData.title}
+              onLocationChange={(url, title) => {
+                setFormData({
+                  ...formData,
+                  url,
+                  title: title || formData.title,
+                })
+              }}
             />
-          </div>
+          ) : (
+            <div>
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                URL *
+              </label>
+              <input
+                type="url"
+                required
+                value={formData.url}
+                onChange={(e) =>
+                  setFormData({ ...formData, url: e.target.value })
+                }
+                className="mt-1 block w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-black shadow-sm focus:border-zinc-500 focus:outline-none focus:ring-zinc-500 dark:border-zinc-600 dark:bg-zinc-800 dark:text-white"
+                placeholder="https://example.com"
+              />
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
@@ -138,8 +162,10 @@ export function BlockForm({ block, onClose, onSuccess }: BlockFormProps) {
             >
               <option value="standard">Lien standard</option>
               <option value="social">Réseau social</option>
+              <option value="location">Géolocalisation</option>
             </select>
           </div>
+
 
           <div>
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">

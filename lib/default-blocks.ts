@@ -61,6 +61,14 @@ export const DEFAULT_BLOCKS: DefaultBlockTemplate[] = [
     order: 5,
     isActive: false, // Inactive by default, user needs to add their email
   },
+  {
+    title: "Géolocalisation",
+    url: "https://www.google.com/maps?q=50.5039,4.4699",
+    type: "location",
+    icon: "📍",
+    order: 6,
+    isActive: false, // Inactive by default, user needs to add their location URL
+  },
 ]
 
 /**
