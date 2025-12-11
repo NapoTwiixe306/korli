@@ -656,17 +656,36 @@ export function AppearancePageClient({
                     ].map((item) => (
                       <label key={item.key} className="flex items-center justify-between gap-3 text-sm text-black dark:text-white">
                         <span>{item.label}</span>
-                        <input
-                          type="color"
-                          value={(themeConfig[item.key] as string) || "#ffffff"}
-                          onChange={(e) =>
-                            setThemeConfig({
-                              ...themeConfig,
-                              [item.key]: e.target.value,
-                            })
-                          }
-                          className="h-9 w-16 cursor-pointer rounded border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900"
-                        />
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="color"
+                            value={(themeConfig[item.key] as string) || "#ffffff"}
+                            onChange={(e) =>
+                              setThemeConfig({
+                                ...themeConfig,
+                                [item.key]: e.target.value,
+                              })
+                            }
+                            className="h-9 w-16 cursor-pointer rounded border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900"
+                          />
+                          <input
+                            type="text"
+                            value={(themeConfig[item.key] as string) || ""}
+                            onChange={(e) => {
+                              const raw = e.target.value
+                              const sanitized = raw.startsWith("#") ? raw : `#${raw}`
+                              const hex = sanitized.replace("#", "")
+                              if (/^[0-9a-fA-F]{0,6}$/.test(hex)) {
+                                setThemeConfig({
+                                  ...themeConfig,
+                                  [item.key]: sanitized,
+                                })
+                              }
+                            }}
+                            placeholder="#ffffff"
+                            className="w-24 rounded border border-zinc-200 bg-white px-2 py-1 text-sm text-black placeholder:text-zinc-400 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white dark:placeholder:text-zinc-500"
+                          />
+                        </div>
                       </label>
                     ))}
                     <label className="flex items-center justify-between gap-3 text-sm text-black dark:text-white">
@@ -724,6 +743,7 @@ export function AppearancePageClient({
                 theme={previewTheme}
                 layout={previewLayout}
                 animations={previewAnimations}
+                themeConfig={previewThemeConfig}
               />
               <p className="mt-4 text-center text-sm text-zinc-600 dark:text-zinc-400">
                 Aperçu de votre page

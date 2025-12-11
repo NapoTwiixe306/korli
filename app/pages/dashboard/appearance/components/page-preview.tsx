@@ -25,6 +25,7 @@ interface PagePreviewProps {
   theme: string
   layout?: string
   animations?: string
+  themeConfig?: Record<string, unknown> | null
 }
 
 export function PagePreview({
@@ -38,19 +39,57 @@ export function PagePreview({
   theme,
   layout = "list",
   animations = "all",
+  themeConfig = null,
 }: PagePreviewProps) {
   const activeBlocks = blocks.filter((b) => b.isActive).sort((a, b) => a.order - b.order)
   const displayAvatar = avatar || userImage
   const styles = getThemeClasses(theme as Theme)
   const animClasses = getAnimationClasses(animations as AnimationLevel)
 
+  const defaults =
+    theme === "dark"
+      ? {
+          backgroundColor: "#000000",
+          textPrimary: "#ffffff",
+          textSecondary: "#a1a1aa",
+          cardBackground: "#18181b",
+          borderColor: "#27272a",
+        }
+      : {
+          backgroundColor: "#ffffff",
+          textPrimary: "#111111",
+          textSecondary: "#4b5563",
+          cardBackground: "#ffffff",
+          borderColor: "#e5e7eb",
+        }
+
+  const overrides = themeConfig
+    ? {
+        ...defaults,
+        ...Object.fromEntries(
+          Object.entries(themeConfig).filter(([key]) =>
+            ["backgroundColor", "textPrimary", "textSecondary", "cardBackground", "borderColor"].includes(key)
+          )
+        ),
+      }
+    : defaults
+
   return (
-    <div className={`flex items-center justify-center rounded-lg border ${styles.border} ${styles.background} p-4`}>
-      <div className={`w-full max-w-[320px] space-y-6 rounded-lg px-4 py-8 ${styles.background}`}>
+    <div
+      className={`flex items-center justify-center rounded-lg border ${styles.border} p-4`}
+      style={{ borderColor: overrides.borderColor, backgroundColor: overrides.backgroundColor }}
+    >
+      <div
+        className={`w-full max-w-[320px] space-y-6 rounded-lg px-4 py-8`}
+        style={{ backgroundColor: overrides.cardBackground, color: overrides.textPrimary }}
+      >
         {/* Avatar & Bio */}
         <div className="flex flex-col items-center space-y-4">
           {displayAvatar ? (
-            <div className={`relative h-20 w-20 overflow-hidden rounded-full border-2 ${styles.avatarBorder} shadow-lg`}>
+            <div
+              className={`relative h-20 w-20 overflow-hidden rounded-full border-2 ${styles.avatarBorder} shadow-lg`}
+              style={{ borderColor: overrides.borderColor }}
+            >
               <Image
                 src={displayAvatar}
                 alt={userName || username}
@@ -69,17 +108,18 @@ export function PagePreview({
           )}
 
           <div className="text-center">
-            <h2 className={`text-lg font-bold ${styles.textPrimary}`}>
+            <h2 className={`text-lg font-bold ${styles.textPrimary}`} style={{ color: overrides.textPrimary }}>
               {userName || username}
             </h2>
             {subtitle && (
               <div
                 className={`mt-1 text-sm ${styles.textSecondary} line-clamp-2`}
+                style={{ color: overrides.textSecondary }}
                 dangerouslySetInnerHTML={{ __html: subtitle }}
               />
             )}
             {bio && (
-              <p className={`mt-1 text-sm ${styles.textSecondary} line-clamp-2`}>
+              <p className={`mt-1 text-sm ${styles.textSecondary} line-clamp-2`} style={{ color: overrides.textSecondary }}>
                 {bio}
               </p>
             )}
@@ -89,18 +129,30 @@ export function PagePreview({
         {/* Blocks - Simplified preview */}
         <div className="space-y-2">
           {activeBlocks.length === 0 ? (
-            <div className={`rounded-lg border ${styles.border} ${styles.cardBackground} p-3 text-center text-xs ${styles.textSecondary}`}>
+            <div
+              className={`rounded-lg border ${styles.border} p-3 text-center text-xs ${styles.textSecondary}`}
+              style={{
+                backgroundColor: overrides.cardBackground,
+                borderColor: overrides.borderColor,
+                color: overrides.textSecondary,
+              }}
+            >
               Aucun lien disponible
             </div>
           ) : (
             activeBlocks.slice(0, layout === "list" ? 4 : 6).map((block) => (
               <div
                 key={block.id}
-                className={`flex items-center justify-center rounded-lg border ${styles.border} ${styles.cardBackground} px-3 py-2 text-center text-sm font-medium ${styles.textPrimary} ${animClasses.blockTransition} ${
+                className={`flex items-center justify-center rounded-lg border ${styles.border} px-3 py-2 text-center text-sm font-medium ${styles.textPrimary} ${animClasses.blockTransition} ${
                   theme === "colorful" 
                     ? "bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/50 dark:to-pink-900/50"
                     : ""
                 }`}
+                style={{
+                  backgroundColor: theme === "colorful" ? undefined : overrides.cardBackground,
+                  borderColor: overrides.borderColor,
+                  color: overrides.textPrimary,
+                }}
               >
                 <BlockIcon icon={block.icon} className="mr-1.5 text-base" animations={animations as AnimationLevel} />
                 <span className="truncate">{block.title}</span>
@@ -108,7 +160,7 @@ export function PagePreview({
             ))
           )}
           {activeBlocks.length > (layout === "list" ? 4 : 6) && (
-            <div className={`text-center text-xs ${styles.textSecondary}`}>
+            <div className={`text-center text-xs ${styles.textSecondary}`} style={{ color: overrides.textSecondary }}>
               +{activeBlocks.length - (layout === "list" ? 4 : 6)} autre{activeBlocks.length - (layout === "list" ? 4 : 6) > 1 ? "s" : ""} bloc
               {activeBlocks.length - (layout === "list" ? 4 : 6) > 1 ? "s" : ""}
             </div>
