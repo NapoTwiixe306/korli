@@ -2,6 +2,27 @@ import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { NextRequest, NextResponse } from "next/server"
 import { headers } from "next/headers"
+import { z } from "zod"
+
+const conditionsSchema = z.object({
+  trafficSource: z.array(z.string()).optional(),
+  device: z.array(z.string()).optional(),
+  country: z.array(z.string()).optional(),
+  timeRange: z
+    .object({
+      start: z.string(),
+      end: z.string(),
+    })
+    .optional(),
+  dayOfWeek: z.array(z.number()).optional(),
+  visitorType: z.enum(["new", "returning"]).optional(),
+})
+
+const actionsSchema = z.object({
+  type: z.enum(["show", "hide", "reorder"]).optional(),
+  blockIds: z.array(z.string()).optional(),
+  order: z.array(z.union([z.string(), z.number()])).optional(),
+})
 
 export async function PATCH(
   request: NextRequest,
@@ -28,7 +49,14 @@ export async function PATCH(
 
     const { id } = await params
     const body = await request.json()
-    const { name, isActive, priority, conditions, actions } = body
+    const schema = z.object({
+      name: z.string().min(1).optional(),
+      isActive: z.boolean().optional(),
+      priority: z.number().optional(),
+      conditions: conditionsSchema.optional(),
+      actions: actionsSchema.optional(),
+    })
+    const { name, isActive, priority, conditions, actions } = schema.parse(body)
 
     // Verify rule belongs to user
     const userPage = await prisma.userPage.findUnique({

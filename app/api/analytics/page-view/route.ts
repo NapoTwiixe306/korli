@@ -20,9 +20,11 @@ export async function POST(request: NextRequest) {
     const schema = z.object({
       userPageId: z.string().min(1),
       visitorId: z.string().optional(),
+      sessionId: z.string().optional(),
+      variant: z.string().optional(),
       ruleIds: z.array(z.string()).optional(),
     })
-    const { userPageId, visitorId, ruleIds } = schema.parse(json)
+    const { userPageId, visitorId, sessionId, variant, ruleIds } = schema.parse(json)
 
     // Bot filter (lightweight UA check)
     const userAgent = request.headers.get("user-agent") || ""
@@ -71,6 +73,8 @@ export async function POST(request: NextRequest) {
       data: {
         userPageId,
         visitorId: visitorId || null,
+        sessionId: sessionId || null,
+        variant: variant || null,
         ruleIds: ruleIds && ruleIds.length > 0 ? ruleIds : undefined,
         source,
         device,

@@ -107,6 +107,8 @@ model Block {
   isActive   Boolean      @default(true)
   createdAt  DateTime     @default(now())
   updatedAt  DateTime     @updatedAt
+  abGroup    String?
+  abWeight   Int          @default(100)
   userPage   UserPage     @relation(fields: [userPageId], references: [id], onDelete: Cascade)
   clicks     BlockClick[]
 
@@ -127,6 +129,8 @@ model PageView {
   ruleIds     Json?
   source      String?
   visitorId   String?
+  variant     String?
+  sessionId   String?
   userPage    UserPage @relation(fields: [userPageId], references: [id], onDelete: Cascade)
 
   @@index([userPageId])
@@ -146,6 +150,7 @@ model BlockClick {
   source     String?
   userPageId String?
   visitorId  String?
+  variant    String?
   block      Block    @relation(fields: [blockId], references: [id], onDelete: Cascade)
 
   @@index([userPageId])

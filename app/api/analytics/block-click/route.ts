@@ -21,9 +21,11 @@ export async function POST(request: NextRequest) {
       blockId: z.string().min(1),
       userPageId: z.string().optional(),
       visitorId: z.string().optional(),
+      sessionId: z.string().optional(),
+      variant: z.string().optional(),
       ruleIds: z.array(z.string()).optional(),
     })
-    const { blockId, userPageId, visitorId, ruleIds } = schema.parse(json)
+    const { blockId, userPageId, visitorId, sessionId, variant, ruleIds } = schema.parse(json)
 
     // Verify block exists
     const block = await prisma.block.findUnique({
@@ -62,6 +64,8 @@ export async function POST(request: NextRequest) {
       data: {
         blockId,
         visitorId: visitorId || null,
+        sessionId: sessionId || null,
+        variant: variant || null,
         ruleIds: ruleIds && ruleIds.length > 0 ? ruleIds : undefined,
         source,
         device,

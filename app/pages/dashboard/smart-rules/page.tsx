@@ -40,7 +40,7 @@ export default async function SmartRulesPage() {
           order: "asc",
         },
       },
-    } as any,
+    },
   }) as any
 
   if (!userPage) {

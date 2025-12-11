@@ -10,23 +10,37 @@ export interface DefaultBlockTemplate {
   icon: string | null
   order: number
   isActive: boolean
+  abGroup?: string | null
+  abWeight?: number | null
 }
 
 export const DEFAULT_BLOCKS: DefaultBlockTemplate[] = [
+  {
+    title: "Lien promo A",
+    url: "https://example.com/promo-a",
+    type: "standard",
+    icon: "🔥",
+    order: 0,
+    isActive: true,
+    abGroup: "A",
+    abWeight: 100,
+  },
+  {
+    title: "Lien promo B",
+    url: "https://example.com/promo-b",
+    type: "standard",
+    icon: "⚡",
+    order: 1,
+    isActive: true,
+    abGroup: "B",
+    abWeight: 100,
+  },
   {
     title: "Instagram",
     url: "https://instagram.com",
     type: "social",
     icon: "icon:instagram",
-    order: 0,
-    isActive: true,
-  },
-  {
-    title: "YouTube",
-    url: "https://youtube.com",
-    type: "social",
-    icon: "icon:youtube",
-    order: 1,
+    order: 2,
     isActive: true,
   },
   {
@@ -34,7 +48,7 @@ export const DEFAULT_BLOCKS: DefaultBlockTemplate[] = [
     url: "https://twitter.com",
     type: "social",
     icon: "icon:twitter/x",
-    order: 2,
+    order: 3,
     isActive: true,
   },
   {
@@ -42,7 +56,7 @@ export const DEFAULT_BLOCKS: DefaultBlockTemplate[] = [
     url: "https://tiktok.com",
     type: "social",
     icon: "icon:tiktok",
-    order: 3,
+    order: 4,
     isActive: true,
   },
   {
@@ -50,7 +64,7 @@ export const DEFAULT_BLOCKS: DefaultBlockTemplate[] = [
     url: "https://example.com",
     type: "standard",
     icon: "🌐",
-    order: 4,
+    order: 5,
     isActive: false, // Inactive by default, user needs to add their URL
   },
   {
@@ -58,7 +72,7 @@ export const DEFAULT_BLOCKS: DefaultBlockTemplate[] = [
     url: "mailto:your@email.com",
     type: "standard",
     icon: "✉️",
-    order: 5,
+    order: 6,
     isActive: false, // Inactive by default, user needs to add their email
   },
   {
@@ -66,7 +80,7 @@ export const DEFAULT_BLOCKS: DefaultBlockTemplate[] = [
     url: "https://www.google.com/maps?q=50.5039,4.4699",
     type: "location",
     icon: "📍",
-    order: 6,
+    order: 7,
     isActive: false, // Inactive by default, user needs to add their location URL
   },
 ]

@@ -24,6 +24,8 @@ interface Block {
   title: string
   url: string | null
   icon: string | null
+  abGroup?: string | null
+  abWeight?: number | null
   type?: string | null
   order: number
 }
@@ -82,7 +84,9 @@ export function ThemedPage({
   const [blocks, setBlocks] = useState<Block[]>(initialBlocks)
   const [trafficInfo, setTrafficInfo] = useState<TrafficInfo | null>(null)
   const [visitorId, setVisitorId] = useState<string | null>(null)
+  const [sessionId, setSessionId] = useState<string | null>(null)
   const [appliedRuleIds, setAppliedRuleIds] = useState<string[]>([])
+  const [selectedVariant, setSelectedVariant] = useState<string | null>(null)
 
   useEffect(() => {
     // Get referer and user agent from browser
@@ -102,6 +106,15 @@ export function ThemedPage({
       localStorage.setItem(visitorKey, computedVisitorId)
     }
     const isReturningVisitor = Boolean(existingVisitor)
+
+    // Session ID pour uniques plus fiables
+    const sessionKey = "korli_session_id"
+    const existingSession = localStorage.getItem(sessionKey)
+    const computedSessionId = existingSession || crypto.randomUUID()
+    setSessionId(computedSessionId)
+    if (!existingSession) {
+      localStorage.setItem(sessionKey, computedSessionId)
+    }
 
     // Use source param if referer is not available
     const effectiveReferer = referer || (sourceParam ? `https://${sourceParam}.com` : null)
@@ -150,6 +163,47 @@ export function ThemedPage({
 
     let processedBlocks = [...initialBlocks]
     const matchedRuleIds: string[] = []
+
+    // A/B selection (pondérée)
+    const abGroups = initialBlocks
+      .filter((b) => b.abGroup)
+      .reduce<Record<string, number>>((acc, block) => {
+        const key = (block.abGroup || "").trim()
+        if (!key) return acc
+        acc[key] = (acc[key] || 0) + (block.abWeight ?? 100)
+        return acc
+      }, {})
+
+    const pickVariant = (): string | null => {
+      const entries = Object.entries(abGroups)
+      if (entries.length === 0) return null
+      const total = entries.reduce((sum, [, weight]) => sum + weight, 0)
+      const roll = Math.random() * total
+      let acc = 0
+      for (const [group, weight] of entries) {
+        acc += weight
+        if (roll <= acc) return group
+      }
+      return entries[0][0] || null
+    }
+
+    // Persist variant per session for consistency
+    const variantKey = `korli_variant_${username}`
+    const storedVariant = typeof window !== "undefined" ? localStorage.getItem(variantKey) : null
+    let variant = storedVariant
+    if (!variant) {
+      variant = pickVariant()
+      if (variant) {
+        localStorage.setItem(variantKey, variant)
+      }
+    }
+    setSelectedVariant(variant)
+
+    if (variant) {
+      processedBlocks = processedBlocks.filter(
+        (b) => !b.abGroup || (b.abGroup && b.abGroup === variant)
+      )
+    }
 
     // Sort rules by priority (highest first)
     const activeRules = smartRules
@@ -349,6 +403,8 @@ export function ThemedPage({
       <PageViewTracker
         userPageId={userPageId}
         visitorId={visitorId || undefined}
+        sessionId={sessionId || undefined}
+        variant={selectedVariant || undefined}
         ruleIds={appliedRuleIds}
       />
       <div className={`w-full ${maxWidth} space-y-6 sm:space-y-8`}>
@@ -440,6 +496,8 @@ export function ThemedPage({
               blockId,
               userPageId,
               visitorId: visitorId || undefined,
+              sessionId: sessionId || undefined,
+              variant: selectedVariant || undefined,
               ruleIds: appliedRuleIds,
             }),
             }).catch(console.error)

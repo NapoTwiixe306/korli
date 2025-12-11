@@ -60,6 +60,8 @@ export default async function UserPage({ params }: PageProps) {
     title: block.title,
     url: block.url,
     icon: block.icon,
+    abGroup: (block as any).abGroup || null,
+    abWeight: (block as any).abWeight ?? 100,
     type: block.type,
     order: block.order,
   }))

@@ -5,10 +5,14 @@ import { useEffect } from "react"
 export function PageViewTracker({
   userPageId,
   visitorId,
+  sessionId,
+  variant,
   ruleIds,
 }: {
   userPageId: string
   visitorId?: string
+  sessionId?: string
+  variant?: string
   ruleIds?: string[]
 }) {
   useEffect(() => {
@@ -18,9 +22,9 @@ export function PageViewTracker({
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ userPageId, visitorId, ruleIds }),
+      body: JSON.stringify({ userPageId, visitorId, sessionId, variant, ruleIds }),
     }).catch(console.error)
-  }, [userPageId, visitorId, ruleIds])
+  }, [userPageId, visitorId, sessionId, variant, ruleIds])
 
   return null
 }

@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { title, url, type = "standard", icon, order } = body
+    const { title, url, type = "standard", icon, order, abGroup, abWeight } = body
 
     if (!title || !url) {
       return NextResponse.json(
@@ -82,9 +82,11 @@ export async function POST(request: NextRequest) {
         url,
         type,
         icon: icon || null,
+        abGroup: abGroup || null,
+        abWeight: abWeight ?? 100,
         order: blockOrder,
         isActive: true,
-      },
+      } as any,
     })
 
     return NextResponse.json({ block }, { status: 201 })

@@ -10,6 +10,8 @@ interface BlockFormData {
   url: string
   type: string
   icon: string
+  abGroup: string
+  abWeight: number
 }
 
 interface BlockFormProps {
@@ -19,6 +21,8 @@ interface BlockFormProps {
     url: string | null
     type: string
     icon: string | null
+    abGroup?: string | null
+    abWeight?: number | null
   } | null
   onClose: () => void
   onSuccess: () => void
@@ -30,6 +34,8 @@ export function BlockForm({ block, onClose, onSuccess }: BlockFormProps) {
     url: block?.url || "",
     type: block?.type || "standard",
     icon: block?.icon || "",
+    abGroup: (block as any)?.abGroup || "",
+    abWeight: (block as any)?.abWeight ?? 100,
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
@@ -63,6 +69,8 @@ export function BlockForm({ block, onClose, onSuccess }: BlockFormProps) {
           url: formData.url,
           type: formData.type,
           icon: formData.icon || null,
+          abGroup: formData.abGroup || null,
+          abWeight: formData.abWeight ?? 100,
         }),
       })
 
@@ -164,6 +172,43 @@ export function BlockForm({ block, onClose, onSuccess }: BlockFormProps) {
               <option value="social">Réseau social</option>
               <option value="location">Géolocalisation</option>
             </select>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                Variante A/B (ex: A, B, control)
+              </label>
+              <input
+                type="text"
+                value={formData.abGroup}
+                onChange={(e) => setFormData({ ...formData, abGroup: e.target.value })}
+                className="mt-1 block w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-black shadow-sm focus:border-zinc-500 focus:outline-none focus:ring-zinc-500 dark:border-zinc-600 dark:bg-zinc-800 dark:text-white"
+                placeholder="A"
+                maxLength={20}
+              />
+              <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                Laisse vide pour afficher le bloc dans toutes les variantes.
+              </p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                Poids (répartition)
+              </label>
+              <input
+                type="number"
+                min={1}
+                max={1000}
+                value={formData.abWeight}
+                onChange={(e) =>
+                  setFormData({ ...formData, abWeight: Number(e.target.value) || 0 })
+                }
+                className="mt-1 block w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-black shadow-sm focus:border-zinc-500 focus:outline-none focus:ring-zinc-500 dark:border-zinc-600 dark:bg-zinc-800 dark:text-white"
+              />
+              <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                Par défaut 100. Plus le poids est élevé, plus la variante est servie.
+              </p>
+            </div>
           </div>
 
 

@@ -29,7 +29,7 @@ export async function PATCH(
     }
 
     const body = await request.json()
-    const { title, url, type, icon, isActive, order } = body
+    const { title, url, type, icon, isActive, order, abGroup, abWeight } = body
 
     // Get block and verify ownership
     const block = await prisma.block.findUnique({
@@ -84,7 +84,9 @@ export async function PATCH(
         ...(icon !== undefined && { icon }),
         ...(isActive !== undefined && { isActive }),
         ...(order !== undefined && { order }),
-      },
+        ...(abGroup !== undefined && { abGroup }),
+        ...(abWeight !== undefined && { abWeight }),
+      } as any,
     })
 
     return NextResponse.json({ block: updatedBlock })
