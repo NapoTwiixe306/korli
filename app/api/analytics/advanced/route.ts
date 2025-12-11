@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { getRedis } from "@/lib/redis"
 import { NextRequest, NextResponse } from "next/server"
 import { headers } from "next/headers"
 import { z } from "zod"
@@ -71,7 +72,23 @@ export async function GET(request: NextRequest) {
       createdAt: { gte: startDate, lte: endDate },
     } as any
 
-    const [views, clicks, sources, devices, countries, variantsViews, variantsClicks] =
+    const cacheKey = `adv:${userPage.id}:${startDate.toISOString()}:${endDate.toISOString()}`
+    const redis = (() => {
+      try {
+        return getRedis()
+      } catch {
+        return null
+      }
+    })()
+
+    if (redis) {
+      const cached = await redis.get(cacheKey)
+      if (cached) {
+        return NextResponse.json(cached)
+      }
+    }
+
+    const [views, clicks, sources, devices, countries, variantsViews, variantsClicks, topBlocks] =
       await Promise.all([
         prisma.pageView.count({ where: whereRange }),
         prisma.blockClick.count({ where: { userPageId: userPage.id, createdAt: whereRange.createdAt } as any }),
@@ -100,6 +117,17 @@ export async function GET(request: NextRequest) {
           _count: true,
           where: { userPageId: userPage.id, createdAt: whereRange.createdAt, variant: { not: null } } as any,
         }) as any,
+        prisma.block.findMany({
+          where: { userPageId: userPage.id },
+          select: {
+            id: true,
+            title: true,
+            clicks: {
+              where: { createdAt: whereRange.createdAt } as any,
+              select: { id: true },
+            },
+          },
+        }),
       ])
 
     const uniqueViews = await countDistinct("PageView", "WHERE userPageId = ? AND createdAt BETWEEN ? AND ?", [
@@ -133,7 +161,16 @@ export async function GET(request: NextRequest) {
         clicks: clickCount,
         ctr: variantCtr,
       }
-    })
+    });
+
+    const blocks = topBlocks
+      .map((b: any) => {
+        const clicksCount = Array.isArray(b.clicks) ? b.clicks.length : 0
+        const blockCtr = views > 0 ? Number(((clicksCount / views) * 100).toFixed(1)) : 0
+        return { id: b.id, title: b.title, clicks: clicksCount, ctr: blockCtr }
+      })
+      .sort((a: any, b: any) => b.clicks - a.clicks)
+      .slice(0, 5)
 
     const result = {
       range: { start: startDate.toISOString(), end: endDate.toISOString() },
@@ -150,6 +187,7 @@ export async function GET(request: NextRequest) {
         countries: toBreakdown(countries, "country"),
       },
       variants,
+      blocks,
     }
 
     if (parsed.format === "csv") {
@@ -171,7 +209,15 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    return NextResponse.json(result)
+    if (redis) {
+      await redis.set(cacheKey, result, { ex: 60 })
+    }
+
+    const response = NextResponse.json(result)
+    response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin")
+    response.headers.set("X-Frame-Options", "DENY")
+    response.headers.set("X-Content-Type-Options", "nosniff")
+    return response
   } catch (error) {
     console.error("Error in analytics advanced:", error)
     return NextResponse.json({ error: "Server error" }, { status: 500 })

@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma"
 import { detectCountryServer, detectDevice, detectTrafficSource } from "@/lib/smart-rules"
 import { rateLimit } from "@/lib/rate-limit"
+import { rateLimitRedis } from "@/lib/rate-limit-redis"
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 
@@ -11,8 +12,14 @@ export async function POST(request: NextRequest) {
       request.headers.get("x-real-ip") ||
       null
 
-    const limited = rateLimit(`page-view:${ipAddress ?? "anon"}`, 30, 60_000)
-    if (!limited) {
+    let limitedOk = true
+    try {
+      limitedOk = await rateLimitRedis(`pv:${ipAddress ?? "anon"}`, 60, 60) // 60 req/min
+    } catch {
+      // Redis non dispo -> fallback local best effort
+      limitedOk = rateLimit(`page-view:${ipAddress ?? "anon"}`, 30, 60_000)
+    }
+    if (!limitedOk) {
       return NextResponse.json({ error: "Trop de requêtes" }, { status: 429 })
     }
 
@@ -87,6 +94,9 @@ export async function POST(request: NextRequest) {
     })
 
     const response = NextResponse.json({ success: true, country })
+    response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin")
+    response.headers.set("X-Frame-Options", "DENY")
+    response.headers.set("X-Content-Type-Options", "nosniff")
     if (!request.cookies.get("korli_returning")) {
       response.cookies.set("korli_returning", "1", {
         maxAge: 60 * 60 * 24 * 365,

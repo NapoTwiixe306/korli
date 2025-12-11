@@ -19,6 +19,7 @@ interface Data {
   totals: { views: number; clicks: number; ctr: number; uniqueViews: number; uniqueClicks: number }
   breakdowns: { sources: BreakdownRow[]; devices: BreakdownRow[]; countries: BreakdownRow[] }
   variants: VariantRow[]
+  blocks?: Array<{ id: string; title: string; clicks: number; ctr: number }>
 }
 
 export function AdvancedAnalytics({ start, end }: { start: string; end: string }) {
@@ -114,6 +115,8 @@ export function AdvancedAnalytics({ start, end }: { start: string; end: string }
       </div>
 
       <VariantsTable variants={data.variants} />
+
+      <TopBlocksTable blocks={data.blocks || []} />
     </div>
   )
 }
@@ -121,7 +124,7 @@ export function AdvancedAnalytics({ start, end }: { start: string; end: string }
 function StatCard({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-      <div className="text-sm text-zinc-600 dark:text-zinc-400">{label}</div>
+      <div className="text-sm text-zinc-600 dark:text-zinc-300">{label}</div>
       <div className="mt-2 text-3xl font-bold text-black dark:text-white">{value}</div>
     </div>
   )
@@ -148,29 +151,84 @@ function Breakdown({ title, rows }: { title: string; rows: BreakdownRow[] }) {
 }
 
 function VariantsTable({ variants }: { variants: VariantRow[] }) {
+  if (!variants || variants.length === 0) {
+    return (
+      <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+        <h3 className="mb-3 text-lg font-semibold text-black dark:text-white">A/B testing</h3>
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">Aucune variante servie</p>
+      </div>
+    )
+  }
+
+  const winner = variants.reduce((best, current) => {
+    if (!best) return current
+    return current.ctr > best.ctr ? current : best
+  }, variants[0])
+
+  const totalViews = variants.reduce((sum, v) => sum + v.views, 0)
+
   return (
     <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-      <h3 className="mb-3 text-lg font-semibold text-black dark:text-white">A/B testing</h3>
-      {variants.length === 0 ? (
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">Aucune variante servie</p>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead>
-              <tr className="text-left text-zinc-500 dark:text-zinc-400">
-                <th className="py-2">Variante</th>
-                <th className="py-2">Vues</th>
-                <th className="py-2">Clics</th>
-                <th className="py-2">CTR</th>
-              </tr>
-            </thead>
-            <tbody>
-              {variants.map((v) => (
-                <tr key={v.variant} className="border-t border-zinc-200 dark:border-zinc-800">
-                  <td className="py-2 font-medium text-black dark:text-white">{v.variant}</td>
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-lg font-semibold text-black dark:text-white">A/B testing</h3>
+        {winner && (
+          <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700 dark:bg-green-900/30 dark:text-green-200">
+            Gagnant : {winner.variant} ({winner.ctr}%)
+          </span>
+        )}
+      </div>
+      <div className="overflow-x-auto">
+        <table className="min-w-full text-sm text-black dark:text-white">
+          <thead>
+            <tr className="text-left text-zinc-500 dark:text-zinc-300">
+              <th className="py-2">Variante</th>
+              <th className="py-2">Vues</th>
+              <th className="py-2">Clics</th>
+              <th className="py-2">CTR</th>
+              <th className="py-2">% impressions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {variants.map((v) => (
+              <tr key={v.variant} className="border-t border-zinc-200 dark:border-zinc-800">
+                <td className="py-2 font-medium text-black dark:text-white">{v.variant}</td>
                   <td className="py-2">{v.views}</td>
                   <td className="py-2">{v.clicks}</td>
                   <td className="py-2">{v.ctr}%</td>
+                  <td className="py-2">
+                  {totalViews > 0 ? `${((v.views / totalViews) * 100).toFixed(1)}%` : "0%"}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+}
+
+function TopBlocksTable({ blocks }: { blocks: Array<{ id: string; title: string; clicks: number; ctr: number }> }) {
+  return (
+    <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+      <h3 className="mb-3 text-lg font-semibold text-black dark:text-white">Top blocs (plage courante)</h3>
+      {blocks.length === 0 ? (
+        <p className="text-sm text-zinc-500 dark:text-zinc-300">Aucun bloc sur cette période</p>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-sm text-black dark:text-white">
+            <thead>
+              <tr className="text-left text-zinc-500 dark:text-zinc-300">
+                <th className="py-2">Bloc</th>
+                <th className="py-2">Clics</th>
+                <th className="py-2">CTR (vs vues page)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {blocks.map((b) => (
+                <tr key={b.id} className="border-t border-zinc-200 dark:border-zinc-800">
+                  <td className="py-2 font-medium text-black dark:text-white">{b.title}</td>
+                  <td className="py-2">{b.clicks}</td>
+                  <td className="py-2">{b.ctr}%</td>
                 </tr>
               ))}
             </tbody>

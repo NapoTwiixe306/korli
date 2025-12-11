@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma"
 import { detectCountryServer, detectDevice, detectTrafficSource } from "@/lib/smart-rules"
 import { rateLimit } from "@/lib/rate-limit"
+import { rateLimitRedis } from "@/lib/rate-limit-redis"
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 
@@ -11,8 +12,14 @@ export async function POST(request: NextRequest) {
       request.headers.get("x-real-ip") ||
       null
 
-    const limited = rateLimit(`block-click:${ipAddress ?? "anon"}`, 60, 60_000)
-    if (!limited) {
+    let limitedOk = true
+    try {
+      limitedOk = await rateLimitRedis(`bc:${ipAddress ?? "anon"}`, 120, 60) // 120/min
+    } catch {
+      // Redis non dispo -> fallback local best effort
+      limitedOk = rateLimit(`block-click:${ipAddress ?? "anon"}`, 60, 60_000)
+    }
+    if (!limitedOk) {
       return NextResponse.json({ error: "Trop de requêtes" }, { status: 429 })
     }
 
@@ -76,7 +83,11 @@ export async function POST(request: NextRequest) {
       },
     } as any)
 
-    return NextResponse.json({ success: true })
+    const response = NextResponse.json({ success: true })
+    response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin")
+    response.headers.set("X-Frame-Options", "DENY")
+    response.headers.set("X-Content-Type-Options", "nosniff")
+    return response
   } catch (error) {
     console.error("Error tracking block click:", error)
     return NextResponse.json(

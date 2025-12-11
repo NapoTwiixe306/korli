@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Sparkles, Plus, Edit, Trash2, Eye, EyeOff, ArrowUp, ArrowDown, Settings, X } from "lucide-react"
+import { Sparkles, Plus, Edit, Trash2, Eye, EyeOff, ArrowUp, ArrowDown, Settings, X, Copy } from "lucide-react"
 import { SmartRuleForm } from "./components/smart-rule-form"
 import { CustomSourcesModal } from "./components/custom-sources-modal"
 
@@ -237,10 +237,44 @@ export function SmartRulesPageClient({
                         Priorité: {rule.priority}
                       </span>
                     </div>
-                    <div className="text-sm text-zinc-600 dark:text-zinc-400 mb-2">
-                      <strong>Conditions:</strong> {formatConditions(rule.conditions)}
+                    <div className="mt-2 flex flex-wrap gap-2 text-xs text-zinc-600 dark:text-zinc-300">
+                      {rule.conditions.trafficSource?.length ? (
+                        <span className="rounded-full bg-blue-50 px-2 py-1 font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-100">
+                          Source: {rule.conditions.trafficSource.join(", ")}
+                        </span>
+                      ) : null}
+                      {rule.conditions.device?.length ? (
+                        <span className="rounded-full bg-purple-50 px-2 py-1 font-medium text-purple-700 dark:bg-purple-900/30 dark:text-purple-100">
+                          Device: {rule.conditions.device.join(", ")}
+                        </span>
+                      ) : null}
+                      {rule.conditions.country?.length ? (
+                        <span className="rounded-full bg-emerald-50 px-2 py-1 font-medium text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-100">
+                          Pays: {rule.conditions.country.join(", ")}
+                        </span>
+                      ) : null}
+                      {rule.conditions.dayOfWeek?.length ? (
+                        <span className="rounded-full bg-amber-50 px-2 py-1 font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-100">
+                          Jours: {rule.conditions.dayOfWeek.join(", ")}
+                        </span>
+                      ) : null}
+                      {rule.conditions.timeRange ? (
+                        <span className="rounded-full bg-pink-50 px-2 py-1 font-medium text-pink-700 dark:bg-pink-900/30 dark:text-pink-100">
+                          Heures: {rule.conditions.timeRange.start}→{rule.conditions.timeRange.end}
+                        </span>
+                      ) : null}
+                      {rule.conditions.visitorType ? (
+                        <span className="rounded-full bg-zinc-100 px-2 py-1 font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
+                          Visiteur: {rule.conditions.visitorType}
+                        </span>
+                      ) : null}
+                      {formatConditions(rule.conditions) === "Aucune condition" && (
+                        <span className="rounded-full bg-zinc-100 px-2 py-1 font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
+                          Aucune condition
+                        </span>
+                      )}
                     </div>
-                    <div className="text-sm text-zinc-600 dark:text-zinc-400">
+                    <div className="text-sm text-zinc-600 dark:text-zinc-400 mt-2">
                       <strong>Action:</strong> {formatAction(rule.actions)}
                     </div>
                   </div>
@@ -279,6 +313,14 @@ export function SmartRulesPageClient({
                       className="rounded-md border border-zinc-300 px-3 py-1 text-sm font-medium text-black transition-colors hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-700 dark:text-white dark:hover:bg-zinc-800"
                     >
                       <Edit className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => setEditingRule({ ...rule, id: "" } as SmartRule)}
+                      disabled={loading === rule.id}
+                      className="rounded-md border border-zinc-300 px-3 py-1 text-sm font-medium text-black transition-colors hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-700 dark:text-white dark:hover:bg-zinc-800"
+                      title="Dupliquer"
+                    >
+                      <Copy className="h-4 w-4" />
                     </button>
                     <button
                       onClick={() => handleDelete(rule.id)}

@@ -26,16 +26,17 @@ export default function AnalyticsPage() {
               Suivez les performances de votre page
             </p>
           </div>
-          <AnalyticsFilters range={range} onChange={setRange} />
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+            <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-700 dark:bg-zinc-800 dark:text-white">
+              Plage active :{" "}
+              {range.start ? new Date(range.start).toLocaleDateString() : "—"} →{" "}
+              {range.end ? new Date(range.end).toLocaleDateString() : "—"}
+            </span>
+            <AnalyticsFilters range={range} onChange={setRange} />
+          </div>
         </div>
 
-        {range.start && range.end ? (
-          <AdvancedAnalytics start={range.start} end={range.end} />
-        ) : (
-          <div className="rounded-lg border border-zinc-200 bg-white p-6 text-sm text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300">
-            Chargement des dates…
-          </div>
-        )}
+        <AdvancedAnalytics start={range.start || ""} end={range.end || ""} />
       </div>
     </div>
   )
