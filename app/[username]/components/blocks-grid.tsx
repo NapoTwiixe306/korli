@@ -77,14 +77,8 @@ export function BlocksGrid({
           return (
             <div
               key={block.id}
-              style={{
-                ...(animations === "all"
-                  ? {
-                      animationDelay: `${index * 0.05}s`,
-                      animation: "slide-up 0.4s ease-out both",
-                    }
-                    : {}),
-              }}
+              className={animations === "all" ? "animate-slide-up" : ""}
+              style={animations === "all" ? { animationDelay: `${index * 0.05}s` } : undefined}
             >
               <LocationBlock
                 title={block.title}
@@ -107,18 +101,21 @@ export function BlocksGrid({
                 theme === "colorful"
                   ? "bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/50 dark:to-pink-900/50 hover:from-purple-100 hover:to-pink-100 dark:hover:from-purple-800/50 dark:hover:to-pink-800/50"
                   : `${styles.buttonHoverBg}`
-              }`}
-              style={{
-                backgroundColor: theme === "colorful" ? undefined : themeOverrides?.cardBackground,
-                borderColor: themeOverrides?.borderColor,
-                color: themeOverrides?.textPrimary,
-                ...(animations === "all"
+              } ${animations === "all" ? "animate-slide-up" : ""}`}
+              style={
+                animations === "all"
                   ? {
                       animationDelay: `${index * 0.05}s`,
-                      animation: "slide-up 0.4s ease-out both",
+                      backgroundColor: theme === "colorful" ? undefined : themeOverrides?.cardBackground,
+                      borderColor: themeOverrides?.borderColor,
+                      color: themeOverrides?.textPrimary,
                     }
-                  : {}),
-              }}
+                  : {
+                      backgroundColor: theme === "colorful" ? undefined : themeOverrides?.cardBackground,
+                      borderColor: themeOverrides?.borderColor,
+                      color: themeOverrides?.textPrimary,
+                    }
+              }
             >
               <BlockIcon icon={block.icon} className="text-lg" animations={animations} />
               <span>{block.title}</span>
@@ -151,15 +148,11 @@ export function BlocksGrid({
           return (
             <div
               key={block.id}
+              className={animations === "all" ? "animate-scale-in" : ""}
               style={{
                 gridColumn: `span ${colSpan}`,
                 gridRow: `span ${Math.max(rowSpan, 2)}`, // Les maps prennent plus de place
-                ...(animations === "all"
-                  ? {
-                      animationDelay: `${index * 0.05}s`,
-                      animation: "scale-in 0.3s ease-out both",
-                    }
-                  : {}),
+                ...(animations === "all" ? { animationDelay: `${index * 0.05}s` } : {}),
               }}
             >
               <LocationBlock
@@ -183,19 +176,14 @@ export function BlocksGrid({
               theme === "colorful"
                 ? "bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/50 dark:to-pink-900/50 hover:from-purple-100 hover:to-pink-100 dark:hover:from-purple-800/50 dark:hover:to-pink-800/50"
                 : `${styles.buttonHoverBg}`
-            }`}
+            } ${animations === "all" ? "animate-scale-in" : ""}`}
             style={{
               backgroundColor: theme === "colorful" ? undefined : themeOverrides?.cardBackground,
               borderColor: themeOverrides?.borderColor,
               color: themeOverrides?.textPrimary,
               gridColumn: `span ${colSpan}`,
               gridRow: `span ${rowSpan}`,
-              ...(animations === "all"
-                ? {
-                    animationDelay: `${index * 0.05}s`,
-                    animation: "scale-in 0.3s ease-out both",
-                  }
-                : {}),
+              ...(animations === "all" ? { animationDelay: `${index * 0.05}s` } : {}),
             }}
           >
             <BlockIcon icon={block.icon} className="mb-2 text-2xl" animations={animations} />
