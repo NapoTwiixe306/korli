@@ -165,6 +165,7 @@ export function DemoSection() {
             <div className="relative bg-zinc-50 dark:bg-black min-h-[800px] max-h-[900px] overflow-y-auto">
               <div className="[&_.flex.min-h-screen]:min-h-0 [&_.flex.min-h-screen]:py-8 [&_.flex.min-h-screen]:px-4">
                 <ThemedPage
+                  userPageId="demo-page-id"
                   userName="Demo User"
                   username="demo"
                   avatar={null}
