@@ -1,4 +1,5 @@
 import { auth } from "@/lib/auth"
+import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import { headers } from "next/headers"
 import { Globe, Instagram, Youtube, Twitter, Link2 } from "lucide-react"
@@ -26,13 +27,41 @@ export default async function TrafficSourcesPage() {
     redirect("/login")
   }
 
+  // Fetch userPage
+  const userPage = await prisma.userPage.findUnique({
+    where: { userId: session.user.id },
+    select: { id: true },
+  })
+  if (!userPage) {
+    redirect("/register")
+  }
+
+  // Aggregate sources over last 30 days
+  const end = new Date()
+  const start = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+
+  const grouped = await prisma.pageView.groupBy({
+    by: ["source"] as any,
+    _count: { _all: true },
+    where: {
+      userPageId: userPage!.id,
+      createdAt: { gte: start, lte: end },
+    },
+  })
+
+  const total = grouped.reduce((sum, g) => sum + (g._count?._all ?? 0), 0)
   const sources = [
-    { name: "Direct", icon: Link2, value: 0, percentage: 0 },
-    { name: "Instagram", icon: Instagram, value: 0, percentage: 0 },
-    { name: "YouTube", icon: Youtube, value: 0, percentage: 0 },
-    { name: "Twitter", icon: Twitter, value: 0, percentage: 0 },
-    { name: "Autre", icon: Globe, value: 0, percentage: 0 },
-  ]
+    { name: "Direct", key: "direct", icon: Link2 },
+    { name: "Instagram", key: "instagram", icon: Instagram },
+    { name: "YouTube", key: "youtube", icon: Youtube },
+    { name: "Twitter/X", key: "twitter", icon: Twitter },
+    { name: "Autre", key: "other", icon: Globe },
+  ].map((s) => {
+    const row = grouped.find((g) => (g.source || "direct") === s.key)
+    const value = row?._count?._all ?? 0
+    const percentage = total > 0 ? Math.round((value / total) * 100) : 0
+    return { ...s, value, percentage }
+  })
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-black">
