@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
       data: {
         blockId,
         visitorId: visitorId || null,
-        ruleIds: ruleIds && ruleIds.length > 0 ? ruleIds : null,
+        ruleIds: ruleIds && ruleIds.length > 0 ? ruleIds : undefined,
         source,
         device,
         country,

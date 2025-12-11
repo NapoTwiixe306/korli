@@ -32,13 +32,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify page exists
-    const userPage = await prisma.userPage.findUnique({
+    const userPage = (await prisma.userPage.findUnique({
       where: { id: userPageId },
-      select: {
-        id: true,
-        customTrafficSources: true,
-      },
-    })
+    })) as any
 
     if (!userPage) {
       return NextResponse.json(
@@ -56,17 +52,17 @@ export async function POST(request: NextRequest) {
           visitorId,
           createdAt: { gte: thirtyMinutesAgo },
         },
-      })
+      } as any)
       if (recent) {
         return NextResponse.json({ skipped: "duplicate" }, { status: 200 })
       }
     }
 
     const referer = request.headers.get("referer") || null
-    const source = detectTrafficSource(
-      referer,
-      (userPage.customTrafficSources as any) || []
-    )
+    const customSources =
+      ((userPage as any)?.customTrafficSources as unknown as Array<{ name: string; domains: string[] }>) ||
+      []
+    const source = detectTrafficSource(referer, customSources)
     const device = detectDevice(userAgent)
     const country = await detectCountryServer(ipAddress)
 
@@ -75,7 +71,7 @@ export async function POST(request: NextRequest) {
       data: {
         userPageId,
         visitorId: visitorId || null,
-        ruleIds: ruleIds && ruleIds.length > 0 ? ruleIds : null,
+        ruleIds: ruleIds && ruleIds.length > 0 ? ruleIds : undefined,
         source,
         device,
         country,
@@ -83,7 +79,7 @@ export async function POST(request: NextRequest) {
         ipAddress,
         userAgent: userAgent || null,
         referer,
-      },
+      } as any,
     })
 
     const response = NextResponse.json({ success: true, country })
