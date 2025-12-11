@@ -25,6 +25,7 @@ export function AdvancedAnalytics({ start, end }: { start: string; end: string }
   const [data, setData] = useState<Data | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [downloading, setDownloading] = useState(false)
 
   useEffect(() => {
     const load = async () => {
@@ -45,6 +46,26 @@ export function AdvancedAnalytics({ start, end }: { start: string; end: string }
     load()
   }, [start, end])
 
+  const handleExportCsv = async () => {
+    try {
+      setDownloading(true)
+      const params = new URLSearchParams({ start, end, format: "csv" })
+      const res = await fetch(`/api/analytics/advanced?${params.toString()}`)
+      if (!res.ok) throw new Error("Export CSV indisponible")
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement("a")
+      link.href = url
+      link.download = `analytics-${start}-${end}.csv`
+      link.click()
+      URL.revokeObjectURL(url)
+    } catch (e) {
+      setError((e as Error).message)
+    } finally {
+      setDownloading(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="rounded-lg border border-zinc-200 bg-white p-6 text-sm text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300">
@@ -63,11 +84,27 @@ export function AdvancedAnalytics({ start, end }: { start: string; end: string }
 
   return (
     <div className="space-y-8">
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between gap-2">
+          <div className="text-sm text-zinc-500 dark:text-zinc-400">
+            Période : {new Date(data.range.start).toLocaleDateString()} →{" "}
+            {new Date(data.range.end).toLocaleDateString()}
+          </div>
+          <button
+            onClick={handleExportCsv}
+            disabled={downloading}
+            className="rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-black transition-colors hover:bg-zinc-50 disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white dark:hover:bg-zinc-800"
+          >
+            {downloading ? "Export..." : "Exporter en CSV"}
+          </button>
+        </div>
+
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Vues" value={data.totals.views} />
         <StatCard label="Clics" value={data.totals.clicks} />
         <StatCard label="Uniques (vues)" value={data.totals.uniqueViews} />
         <StatCard label="CTR" value={`${data.totals.ctr}%`} />
+      </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">

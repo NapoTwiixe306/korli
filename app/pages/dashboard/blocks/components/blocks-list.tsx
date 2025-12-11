@@ -29,6 +29,8 @@ interface Block {
   icon: string | null
   order: number
   isActive: boolean
+  abGroup?: string | null
+  abWeight?: number | null
 }
 
 interface BlocksListProps {
@@ -116,6 +118,15 @@ function SortableBlockItem({
         </div>
       </div>
       <div className="flex items-center gap-2 flex-shrink-0 sm:ml-4">
+          {block.abGroup ? (
+            <span className="rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-200">
+              Variante {block.abGroup} • poids {block.abWeight ?? 100}
+            </span>
+          ) : (
+            <span className="rounded-full bg-zinc-100 px-2 py-1 text-xs font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
+              Variante: toutes
+            </span>
+          )}
         <button
           onClick={() => onToggleActive(block)}
           disabled={loading === block.id}
