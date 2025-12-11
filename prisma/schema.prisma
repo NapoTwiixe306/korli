@@ -85,7 +85,7 @@ model UserPage {
   socialHeaderEnabled  Boolean     @default(false)
   subtitle             String?     @db.Text
   themeConfig          Json?
-  customTrafficSources Json?       // [{ name: string, domains: string[] }]
+  customTrafficSources Json?
   blocks               Block[]
   pageViews            PageView[]
   shortlinks           Shortlink[]
@@ -115,27 +115,40 @@ model Block {
 }
 
 model PageView {
-  id         String   @id @default(cuid())
-  userPageId String
-  ipAddress  String?
-  userAgent  String?
-  referer    String?
-  createdAt  DateTime @default(now())
-  userPage   UserPage @relation(fields: [userPageId], references: [id], onDelete: Cascade)
+  id          String   @id @default(cuid())
+  userPageId  String
+  ipAddress   String?
+  userAgent   String?
+  referer     String?
+  createdAt   DateTime @default(now())
+  country     String?
+  device      String?
+  isReturning Boolean  @default(false)
+  ruleIds     Json?
+  source      String?
+  visitorId   String?
+  userPage    UserPage @relation(fields: [userPageId], references: [id], onDelete: Cascade)
 
   @@index([userPageId])
   @@index([userPageId, createdAt])
 }
 
 model BlockClick {
-  id        String   @id @default(cuid())
-  blockId   String
-  ipAddress String?
-  userAgent String?
-  referer   String?
-  createdAt DateTime @default(now())
-  block     Block    @relation(fields: [blockId], references: [id], onDelete: Cascade)
+  id         String   @id @default(cuid())
+  blockId    String
+  ipAddress  String?
+  userAgent  String?
+  referer    String?
+  createdAt  DateTime @default(now())
+  country    String?
+  device     String?
+  ruleIds    Json?
+  source     String?
+  userPageId String?
+  visitorId  String?
+  block      Block    @relation(fields: [blockId], references: [id], onDelete: Cascade)
 
+  @@index([userPageId])
   @@index([blockId])
   @@index([blockId, createdAt])
 }

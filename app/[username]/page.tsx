@@ -3,6 +3,8 @@ import { notFound } from "next/navigation"
 import { PageViewTracker, BlockClickTracker } from "./components/tracking"
 import { ThemedPage } from "./components/themed-page"
 
+export const revalidate = 60
+
 interface PageProps {
   params: Promise<{
     username: string
@@ -87,34 +89,32 @@ export default async function UserPage({ params }: PageProps) {
   }>
 
   return (
-    <>
-      <PageViewTracker userPageId={userPage.id} />
-      <ThemedPage
-        userName={userPage.user.name || ""}
-        username={username}
-        avatar={userPage.avatar}
-        userImage={userPage.user.image}
-        subtitle={subtitle}
-        bio={userPage.bio}
-        blocks={initialBlocks}
-        smartRules={smartRules}
-        customTrafficSources={customTrafficSources}
-        theme={userPage.theme as "default" | "minimal" | "dark" | "colorful"}
-        layout={userPage.layout || "list"}
-        animations={userPage.animations || "all"}
-        socialHeaderEnabled={(userPage as unknown as { socialHeaderEnabled?: boolean }).socialHeaderEnabled ?? false}
-        socialHeaderBlockIds={
-          Array.isArray((userPage as unknown as { socialHeaderBlockIds?: unknown }).socialHeaderBlockIds)
-            ? ((userPage as unknown as { socialHeaderBlockIds: string[] }).socialHeaderBlockIds)
-            : []
-        }
-        themeConfig={
-          (userPage as unknown as { themeConfig?: unknown }).themeConfig
-            ? ((userPage as unknown as { themeConfig: Record<string, unknown> }).themeConfig)
-            : null
-        }
-      />
-    </>
+    <ThemedPage
+      userPageId={userPage.id}
+      userName={userPage.user.name || ""}
+      username={username}
+      avatar={userPage.avatar}
+      userImage={userPage.user.image}
+      subtitle={subtitle}
+      bio={userPage.bio}
+      blocks={initialBlocks}
+      smartRules={smartRules}
+      customTrafficSources={customTrafficSources}
+      theme={userPage.theme as "default" | "minimal" | "dark" | "colorful"}
+      layout={userPage.layout || "list"}
+      animations={userPage.animations || "all"}
+      socialHeaderEnabled={(userPage as unknown as { socialHeaderEnabled?: boolean }).socialHeaderEnabled ?? false}
+      socialHeaderBlockIds={
+        Array.isArray((userPage as unknown as { socialHeaderBlockIds?: unknown }).socialHeaderBlockIds)
+          ? ((userPage as unknown as { socialHeaderBlockIds: string[] }).socialHeaderBlockIds)
+          : []
+      }
+      themeConfig={
+        (userPage as unknown as { themeConfig?: unknown }).themeConfig
+          ? ((userPage as unknown as { themeConfig: Record<string, unknown> }).themeConfig)
+          : null
+      }
+    />
   )
 }
 

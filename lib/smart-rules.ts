@@ -85,8 +85,27 @@ export function detectDevice(userAgent: string | null | undefined): "mobile" | "
  * For now, returns null. You can integrate with a service like MaxMind or ipapi.co
  */
 export function detectCountry(ipAddress: string | null | undefined): string | null {
-  // TODO: Integrate with geolocation service
-  // For now, return null (no country filtering)
+  // Legacy sync helper kept for backward compatibility (returns null in browser)
+  return null
+}
+
+/**
+ * Server-side country detection using ipapi.co (best effort).
+ * Returns lowercase ISO2 code when available.
+ */
+export async function detectCountryServer(ipAddress: string | null | undefined): Promise<string | null> {
+  try {
+    // ipapi auto-detects when ip is missing
+    const url = ipAddress ? `https://ipapi.co/${ipAddress}/json/` : "https://ipapi.co/json/"
+    const res = await fetch(url, { cache: "no-store" })
+    if (!res.ok) return null
+    const data = (await res.json()) as { country?: string }
+    if (data?.country && typeof data.country === "string") {
+      return data.country.toLowerCase()
+    }
+  } catch (error) {
+    console.warn("Geo lookup failed", error)
+  }
   return null
 }
 

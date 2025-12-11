@@ -2,12 +2,15 @@
 
 import { useEffect } from "react"
 
-interface TrackingProps {
+export function PageViewTracker({
+  userPageId,
+  visitorId,
+  ruleIds,
+}: {
   userPageId: string
-  blockId?: string
-}
-
-export function PageViewTracker({ userPageId }: { userPageId: string }) {
+  visitorId?: string
+  ruleIds?: string[]
+}) {
   useEffect(() => {
     // Track page view
     fetch("/api/analytics/page-view", {
@@ -15,9 +18,9 @@ export function PageViewTracker({ userPageId }: { userPageId: string }) {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ userPageId }),
+      body: JSON.stringify({ userPageId, visitorId, ruleIds }),
     }).catch(console.error)
-  }, [userPageId])
+  }, [userPageId, visitorId, ruleIds])
 
   return null
 }

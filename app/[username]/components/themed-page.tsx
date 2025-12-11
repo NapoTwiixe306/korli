@@ -17,6 +17,7 @@ import {
 import Image from "next/image"
 import Link from "next/link"
 import { BlocksGrid } from "./blocks-grid"
+import { PageViewTracker } from "./tracking"
 
 interface Block {
   id: string
@@ -42,6 +43,7 @@ interface CustomTrafficSource {
 }
 
 interface ThemedPageProps {
+  userPageId: string
   userName: string
   username: string
   avatar: string | null
@@ -60,6 +62,7 @@ interface ThemedPageProps {
 }
 
 export function ThemedPage({
+  userPageId,
   userName,
   username,
   avatar,
@@ -78,6 +81,8 @@ export function ThemedPage({
 }: ThemedPageProps) {
   const [blocks, setBlocks] = useState<Block[]>(initialBlocks)
   const [trafficInfo, setTrafficInfo] = useState<TrafficInfo | null>(null)
+  const [visitorId, setVisitorId] = useState<string | null>(null)
+  const [appliedRuleIds, setAppliedRuleIds] = useState<string[]>([])
 
   useEffect(() => {
     // Get referer and user agent from browser
@@ -89,47 +94,62 @@ export function ThemedPage({
     const sourceParam = urlParams.get("utm_source") || urlParams.get("source")
 
     // Check if returning visitor (using localStorage)
-    const visitorId = `visitor_${window.location.pathname}`
-    const isReturningVisitor = localStorage.getItem(visitorId) !== null
-    if (!isReturningVisitor) {
-      localStorage.setItem(visitorId, Date.now().toString())
+    const visitorKey = `visitor_${window.location.pathname}`
+    const existingVisitor = localStorage.getItem(visitorKey)
+    const computedVisitorId = existingVisitor || crypto.randomUUID()
+    setVisitorId(computedVisitorId)
+    if (!existingVisitor) {
+      localStorage.setItem(visitorKey, computedVisitorId)
     }
-
-    // Get IP from headers (will be null on client, but structure is ready)
-    const ipAddress = null
+    const isReturningVisitor = Boolean(existingVisitor)
 
     // Use source param if referer is not available
     const effectiveReferer = referer || (sourceParam ? `https://${sourceParam}.com` : null)
 
-    const info = getTrafficInfo(
-      effectiveReferer,
-      userAgent,
-      ipAddress,
-      isReturningVisitor,
-      customTrafficSources
-    )
-    
-    // Debug logging (development only)
-    if (process.env.NODE_ENV === "development") {
-      console.log("🔍 Smart Rules Debug:", {
-        referer,
-        sourceParam,
-        effectiveReferer,
-        detectedSource: info.source,
-        device: info.device,
-        visitorType: info.visitorType,
-        rulesCount: smartRules.length,
-        activeRulesCount: smartRules.filter((r) => r.isActive).length,
-      })
+    const loadCountry = async () => {
+      try {
+        const res = await fetch("https://ipapi.co/json/", { cache: "no-store" })
+        if (!res.ok) return null
+        const data = await res.json()
+        return typeof data.country === "string" ? data.country.toLowerCase() : null
+      } catch {
+        return null
+      }
     }
-    
-    setTrafficInfo(info)
-  }, [smartRules])
+
+    loadCountry().then((country) => {
+      const info = getTrafficInfo(
+        effectiveReferer,
+        userAgent,
+        null,
+        isReturningVisitor,
+        customTrafficSources
+      )
+      const finalInfo = { ...info, country }
+
+      if (process.env.NEXT_PUBLIC_SMART_RULES_DEBUG === "true") {
+        console.log("🔍 Smart Rules Debug:", {
+          referer,
+          sourceParam,
+          effectiveReferer,
+          detectedSource: finalInfo.source,
+          device: finalInfo.device,
+          visitorType: finalInfo.visitorType,
+          country,
+          rulesCount: smartRules.length,
+          activeRulesCount: smartRules.filter((r) => r.isActive).length,
+        })
+      }
+
+      setTrafficInfo(finalInfo)
+    })
+  }, [smartRules, customTrafficSources])
 
   useEffect(() => {
     if (!trafficInfo) return
 
     let processedBlocks = [...initialBlocks]
+    const matchedRuleIds: string[] = []
 
     // Sort rules by priority (highest first)
     const activeRules = smartRules
@@ -139,8 +159,8 @@ export function ThemedPage({
     // Apply each matching rule
     for (const rule of activeRules) {
       const matches = matchesConditions(trafficInfo, rule.conditions)
-      
-      if (process.env.NODE_ENV === "development") {
+
+      if (process.env.NEXT_PUBLIC_SMART_RULES_DEBUG === "true") {
         console.log(`🔍 Rule "${rule.name}":`, {
           matches,
           conditions: rule.conditions,
@@ -149,8 +169,9 @@ export function ThemedPage({
       }
       
       if (matches) {
+        matchedRuleIds.push(rule.id)
         processedBlocks = applyRuleAction(processedBlocks, rule.actions)
-        if (process.env.NODE_ENV === "development") {
+        if (process.env.NEXT_PUBLIC_SMART_RULES_DEBUG === "true") {
           console.log(`✅ Rule "${rule.name}" applied`)
         }
       }
@@ -169,12 +190,13 @@ export function ThemedPage({
         trafficInfo.source,
         customTrafficSources
       )
-      if (process.env.NODE_ENV === "development") {
+      if (process.env.NEXT_PUBLIC_SMART_RULES_DEBUG === "true") {
         console.log("🔄 Auto-reorder applied for source:", trafficInfo.source)
       }
     }
 
     setBlocks(processedBlocks)
+    setAppliedRuleIds(matchedRuleIds)
   }, [trafficInfo, smartRules, initialBlocks])
 
   const styles = getThemeClasses(theme)
@@ -324,6 +346,11 @@ export function ThemedPage({
         width: "100%",
       } : getBackgroundStyle()}
     >
+      <PageViewTracker
+        userPageId={userPageId}
+        visitorId={visitorId || undefined}
+        ruleIds={appliedRuleIds}
+      />
       <div className={`w-full ${maxWidth} space-y-6 sm:space-y-8`}>
         {/* Avatar & Bio */}
         <div className="flex flex-col items-center space-y-3 sm:space-y-4">
@@ -409,7 +436,12 @@ export function ThemedPage({
               headers: {
                 "Content-Type": "application/json",
               },
-              body: JSON.stringify({ blockId }),
+            body: JSON.stringify({
+              blockId,
+              userPageId,
+              visitorId: visitorId || undefined,
+              ruleIds: appliedRuleIds,
+            }),
             }).catch(console.error)
           }}
         />

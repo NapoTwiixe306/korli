@@ -1,5 +1,3 @@
-import { auth } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import { headers } from "next/headers"
 
@@ -13,58 +11,39 @@ export default async function AnalyticsPage() {
   
   const authHeaders = new Headers(headerEntries)
   
-  let session
-  try {
-    session = await auth.api.getSession({
-      headers: authHeaders,
-    })
-  } catch (error) {
-    redirect("/login")
-  }
+  const baseUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    process.env.NEXT_PUBLIC_BETTER_AUTH_URL ||
+    "http://localhost:3000"
 
-  if (!session?.user) {
-    redirect("/login")
-  }
-
-  const userPage = await prisma.userPage.findUnique({
-    where: { userId: session.user.id },
-    include: {
-      blocks: {
-        include: {
-          clicks: true,
-        },
-      },
-      pageViews: true,
-    },
+  const res = await fetch(`${baseUrl}/api/analytics/overview`, {
+    headers: authHeaders,
+    cache: "no-store",
   })
 
-  if (!userPage) {
+  if (res.status === 401) {
+    redirect("/login")
+  }
+
+  if (res.status === 404) {
     redirect("/register")
   }
 
-  // Calculate stats
-  const totalViews = userPage.pageViews.length
-  const totalClicks = userPage.blocks.reduce(
-    (sum: number, block: (typeof userPage.blocks)[number]) => sum + block.clicks.length,
-    0
-  )
-  const ctr = totalViews > 0 ? ((totalClicks / totalViews) * 100).toFixed(1) : "0"
-  
-  // Get unique visitors (by IP) - simplified
-  const uniqueIPs = new Set(
-    userPage.pageViews
-      .map((pv: (typeof userPage.pageViews)[number]) => pv.ipAddress)
-      .filter((ip: string | null): ip is string => ip !== null)
-  )
-  const uniqueVisitors = uniqueIPs.size
+  if (!res.ok) {
+    throw new Error("Impossible de charger les analytics")
+  }
 
-  // Calculate clicks per block
-  const blockStats = userPage.blocks.map((block: (typeof userPage.blocks)[number]) => ({
-    id: block.id,
-    title: block.title,
-    clicks: block.clicks.length,
-    ctr: totalViews > 0 ? ((block.clicks.length / totalViews) * 100).toFixed(1) : "0",
-  }))
+  const data = (await res.json()) as {
+    totalViews: number
+    totalClicks: number
+    ctr: number
+    blockStats: Array<{ id: string; title: string; clicks: number; ctr: number }>
+  }
+
+  const totalViews = data.totalViews
+  const totalClicks = data.totalClicks
+  const ctr = data.ctr.toFixed(1)
+  const blockStats = data.blockStats
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-black">
@@ -113,17 +92,6 @@ export default async function AnalyticsPage() {
               Moyenne globale
             </div>
           </div>
-          <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-            <div className="text-sm text-zinc-600 dark:text-zinc-400">
-              Visiteurs uniques
-            </div>
-            <div className="mt-2 text-3xl font-bold text-black dark:text-white">
-              {uniqueVisitors}
-            </div>
-            <div className="mt-1 text-xs text-zinc-500 dark:text-zinc-500">
-              Adresses IP uniques
-            </div>
-          </div>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
@@ -165,7 +133,7 @@ export default async function AnalyticsPage() {
             <h2 className="mb-4 text-lg font-semibold text-black dark:text-white">
               Performance des blocs
             </h2>
-            {userPage.blocks.length === 0 ? (
+            {blockStats.length === 0 ? (
               <p className="text-sm text-zinc-600 dark:text-zinc-400">
                 Aucun bloc pour le moment
               </p>
